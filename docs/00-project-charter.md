@@ -27,6 +27,7 @@ Bot Telegram "NetBackup Assistant" dipakai tim Storage & Backup untuk dua hal: m
 **Termasuk:**
 - `update_cachev2.py` (collector cache), `telegram_botv2.py` (bot), `check_v2.py` (search hostname), `convert_policy_cache.py` (report lengkap).
 - Restart/operasional bot: NSSM service, Task Scheduler collector, skrip restart manual, logging, alerting, runbook.
+- **Web dashboard (ditambahkan 2026-11-24):** web existing milik owner + fitur baru, termasuk healthcheck bot Telegram dan collector. Detail menunggu kode web diterima dan diassessment.
 
 **Tidak termasuk:**
 - Proses insert ke database (`convert_policy_cache_autoupdatedb.py` dan skrip lain), FastAPI :8443, Dify.
@@ -66,6 +67,7 @@ Bot Telegram "NetBackup Assistant" dipakai tim Storage & Backup untuk dua hal: m
 | 2026-11-24 | Proyek dijalankan mengikuti baseline `SYSTEM_DESIGN_PRODUCTION_GUIDE_CLAUDE.md` | Owner |
 | 2026-11-24 | Kode v3 ditulis di repo baru `D:\bot\ATLAS` (GitHub private `yogiadityapratomo/ATLAS`); v2 tidak diubah dan menjadi jalur rollback | Owner |
 | 2026-11-24 | Nama proyek dan repo: **ATLAS** | Owner |
+| 2026-11-24 | **Scope diperluas:** ATLAS mencakup web dashboard milik owner (fitur ditambahkan ke web yang sudah ada); bot Telegram menjadi bagian dashboard, termasuk halaman healthcheck proses bot & collector. Pengembangan dimulai di DEV lokal (laptop). Web akan diassessment dulu (adendum Fase 1) sebelum design | Owner |
 | 2026-11-24 | Semua deployment wajib mengikuti `docs/process/deployment-workflow.md` (turunan guide §10–12, §16, §20). Deviasi dari guide: Windows + NSSM tanpa Docker; GitHub (bukan GitLab) untuk repo/PR/CI | Owner |
 
 ## 7. Pertanyaan terbuka
