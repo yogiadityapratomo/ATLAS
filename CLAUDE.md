@@ -2,8 +2,17 @@
 
 Repo: `D:\bot\ATLAS` → GitHub private `yogiadityapratomo/ATLAS`.
 
-Baseline proses: `SYSTEM_DESIGN_PRODUCTION_GUIDE_CLAUDE.md` (SDLC bertahap + approval per fase).
+Baseline proses: [docs/reference/SYSTEM_DESIGN_PRODUCTION_GUIDE_CLAUDE.md](docs/reference/SYSTEM_DESIGN_PRODUCTION_GUIDE_CLAUDE.md) (SDLC bertahap + approval per fase).
+Referensi arsitektur: [docs/reference/Arsitektur_Infrastruktur_Production_Aplikasi.md](docs/reference/Arsitektur_Infrastruktur_Production_Aplikasi.md).
 Status fase saat ini ada di [docs/00-project-charter.md](docs/00-project-charter.md) — selalu baca dulu sebelum bekerja.
+
+## Deployment — WAJIB mengikuti [docs/process/deployment-workflow.md](docs/process/deployment-workflow.md)
+
+- Alur: branch → PR (template `.github/pull_request_template.md`) → review + bukti test → merge `main` → tag `vX.Y.Z` + CHANGELOG → STAGING + UAT → CR → PROD → health check → release record (`docs/templates/release-checklist.md`).
+- Mulai Fase 3: tidak ada commit kode langsung ke `main`.
+- Setiap langkah di server ditandai [READ-ONLY] atau [CHANGE]; [CHANGE] hanya setelah CR + approval eksplisit owner.
+- Rollback harus tersedia sebelum deploy (junction `current` → rilis sebelumnya; v2 tetap ada sampai ATLAS stabil ≥ 2 minggu).
+- Jika guide dan kondisi server bertentangan, jangan improvisasi: catat deviasi dan minta keputusan owner.
 
 ## Aturan kerja wajib
 
