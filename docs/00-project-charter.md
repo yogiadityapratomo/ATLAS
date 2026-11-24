@@ -1,4 +1,4 @@
-# Project Charter — NetBackup Bot v3
+# Project Charter — ATLAS (NetBackup Telegram Bot v3)
 
 | | |
 |---|---|
@@ -64,7 +64,8 @@ Bot Telegram "NetBackup Assistant" dipakai tim Storage & Backup untuk dua hal: m
 | 2026-11-20 | Skrip restart `.bat` adalah tindakan manual saat bot nyangkut (gejala, bukan penyebab) | Owner |
 | 2026-11-20 | `Backup Inventory.py` tidak dipakai (identik dengan `update_cachev2.py`) | Owner |
 | 2026-11-24 | Proyek dijalankan mengikuti baseline `SYSTEM_DESIGN_PRODUCTION_GUIDE_CLAUDE.md` | Owner |
-| 2026-11-24 | Kode v3 ditulis di repo baru `D:\bot\netbackup-bot-v3`; v2 tidak diubah dan menjadi jalur rollback | Usulan |
+| 2026-11-24 | Kode v3 ditulis di repo baru `D:\bot\ATLAS` (GitHub private `yogiadityapratomo/ATLAS`); v2 tidak diubah dan menjadi jalur rollback | Owner |
+| 2026-11-24 | Nama proyek dan repo: **ATLAS** | Owner |
 
 ## 7. Pertanyaan terbuka
 

@@ -1,4 +1,6 @@
-# CLAUDE.md — NetBackup Bot v3 (proyek restrukturisasi)
+# CLAUDE.md — ATLAS (restrukturisasi NetBackup Telegram Bot v3)
+
+Repo: `D:\bot\ATLAS` → GitHub private `yogiadityapratomo/ATLAS`.
 
 Baseline proses: `SYSTEM_DESIGN_PRODUCTION_GUIDE_CLAUDE.md` (SDLC bertahap + approval per fase).
 Status fase saat ini ada di [docs/00-project-charter.md](docs/00-project-charter.md) — selalu baca dulu sebelum bekerja.

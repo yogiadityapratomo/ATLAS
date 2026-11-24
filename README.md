@@ -1,4 +1,4 @@
-# NetBackup Bot v3 — Restrukturisasi Bot Telegram NetBackup
+# ATLAS — Restrukturisasi Bot Telegram NetBackup (v3)
 
 Proyek restrukturisasi bot Telegram "NetBackup Assistant" (cari backup per hostname dan report policy lengkap) agar stabil, mudah dipantau, dan aman, mengikuti baseline `SYSTEM_DESIGN_PRODUCTION_GUIDE_CLAUDE.md`.
 
