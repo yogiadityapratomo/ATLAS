@@ -1,0 +1,20 @@
+# Secrets & config lokal
+.env
+*.env
+!.env.example
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Data & output runtime (jangan di-commit)
+cache/
+hasil/
+logs/
+auditlog_output/
+*.jsonl
+*.xlsx
+*.csv
+*.LOCK
