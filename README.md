@@ -20,6 +20,7 @@ Detail fase, keputusan, dan pertanyaan terbuka: [docs/00-project-charter.md](doc
 | [docs/00-project-charter.md](docs/00-project-charter.md) | Tujuan, scope, roadmap, status fase, decision log |
 | [docs/01-assessment-report.md](docs/01-assessment-report.md) | Hasil Fase 1: kondisi aktual, temuan & risiko, arsitektur target, pertanyaan |
 | [docs/process/deployment-workflow.md](docs/process/deployment-workflow.md) | **Alur wajib** pengembangan & deployment (DEV → STAGING → PROD, rollback, DoD) |
+| [docs/process/dev-setup.md](docs/process/dev-setup.md) | Setup environment DEV lokal (Git, Python, PostgreSQL 18) |
 | [docs/templates/release-checklist.md](docs/templates/release-checklist.md) | Template release record per rilis |
 | [docs/reference/](docs/reference/) | Baseline: system design & production guide, referensi arsitektur |
 
