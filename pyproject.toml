@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "atlas"
+version = "0.1.0"
+description = "ATLAS — dashboard NetBackup berbasis database (kapasitas, backup inventory, audit log, bot)"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi==0.115.13",       # sama dengan web V4
+    "uvicorn==0.34.3",         # sama dengan web V4
+    "requests==2.32.3",
+    "openpyxl==3.1.5",
+    "python-dotenv==1.2.4",
+    "psycopg[binary,pool]==3.3.9",
+    "psycopg-pool==3.3.3",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest==9.2.0",
+    "ruff==0.17.6",
+]
+
+[tool.setuptools.packages.find]
+include = ["atlas*"]
+
+# ---------------------------------------------------------------- pytest
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+markers = [
+    "integration: butuh PostgreSQL (DB atlas_test); dilewati jika ATLAS_TEST_DB_* tidak diset",
+]
+
+# ---------------------------------------------------------------- ruff
+[tool.ruff]
+line-length = 110
+target-version = "py313"
+extend-exclude = [
+    "legacy",                # snapshot V4 apa adanya, tidak di-lint
+    "scripts/diagnostics",   # alat read-only yang sudah dipakai ke production; dirapikan di PR terpisah
+    "scripts/dev",           # skrip DEV lama; dirapikan di PR terpisah
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "S", "RUF"]
+ignore = [
+    "RUF001", "RUF002", "RUF003",   # teks Bahasa Indonesia boleh memakai tanda baca Unicode (—, …)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "S105", "S106"]   # assert & secret palsu di test

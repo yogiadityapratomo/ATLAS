@@ -1,0 +1,28 @@
+# Line ending konsisten di repo (index selalu LF), terlepas dari core.autocrlf tiap laptop/server.
+* text=auto
+
+# Kode & dokumen: LF di working tree juga
+*.py    text eol=lf
+*.sql   text eol=lf
+*.md    text eol=lf
+*.toml  text eol=lf
+*.yml   text eol=lf
+*.yaml  text eol=lf
+*.json  text eol=lf
+*.js    text eol=lf
+*.css   text eol=lf
+*.html  text eol=lf
+*.txt   text eol=lf
+.env.example text eol=lf
+
+# Skrip Windows: CRLF (cmd.exe kadang salah membaca .bat ber-LF)
+*.bat   text eol=crlf
+*.cmd   text eol=crlf
+*.ps1   text eol=crlf
+
+# Biner
+*.xlsx  binary
+*.png   binary
+*.jpg   binary
+*.ico   binary
+*.pdf   binary

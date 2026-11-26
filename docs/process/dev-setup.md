@@ -53,15 +53,41 @@ Catatan: data ini berasal dari production (termasuk nama PIC di CMDB) — hanya 
 ```powershell
 # sekali saja: venv di root repo
 python -m venv .venv
-.venv\Scripts\pip install -r web\requirements.txt pandas psycopg2-binary
+.venv\Scripts\pip install -r legacy\web-v4\requirements.txt pandas psycopg2-binary
 
 # jalankan (hanya bisa diakses dari laptop ini)
-powershell -ExecutionPolicy Bypass -File web\run_dev.ps1
+powershell -ExecutionPolicy Bypass -File legacy\web-v4\run_dev.ps1
 # buka http://127.0.0.1:8000
 ```
 
-- `web/.env` dibuat otomatis dari `web/.env.example` dengan `ATLAS_ALLOW_LIVE_NBU=0` → `POST /api/generate` ditolak (403), dashboard memakai cache.
-- Token NBU dibaca dari `web/.env` (`NBU_TBS_TOKEN`, dst.), tidak lagi tertulis di kode.
+- `legacy/web-v4/.env` dibuat otomatis dari `legacy/web-v4/.env.example` dengan `ATLAS_ALLOW_LIVE_NBU=0` → `POST /api/generate` ditolak (403), dashboard memakai cache.
+- Token NBU dibaca dari `legacy/web-v4/.env` (`NBU_TBS_TOKEN`, dst.), tidak lagi tertulis di kode.
+
+## Paket `atlas` (aplikasi baru) — test & lint
+
+```powershell
+# sekali saja: pasang paket atlas (editable) + alat dev ke venv root
+.venv\Scripts\pip install -e ".[dev]"
+
+# konfigurasi: salin .env.example menjadi .env di root (JANGAN di-commit)
+Copy-Item .env.example .env
+
+# lint & format
+.venv\Scripts\python.exe -m ruff check .
+.venv\Scripts\python.exe -m ruff format --check .
+
+# test unit (tanpa database)
+.venv\Scripts\python.exe -m pytest
+
+# test integrasi ke PostgreSQL lokal (opsional; password hanya di environment sesi ini)
+$env:ATLAS_TEST_DB_USER = 'postgres'; $env:ATLAS_TEST_DB_NAME = 'postgres'
+$env:ATLAS_TEST_DB_PASSWORD = (Get-Content "$env:USERPROFILE\.atlas\pg_postgres_password.txt" -Raw).Trim()
+.venv\Scripts\python.exe -m pytest -m integration
+Remove-Item Env:ATLAS_TEST_DB_PASSWORD
+```
+
+- Superuser `postgres` hanya dipakai test integrasi PR-1 (`SELECT`, `pg_sleep`). Mulai PR-2 test integrasi memakai DB `atlas_test` dan role aplikasi.
+- Log aplikasi ditulis ke `logs/<komponen>.log` (JSON, satu baris per event, rotasi harian, disimpan 30 hari).
 
 ## Belum disiapkan
 
