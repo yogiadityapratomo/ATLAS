@@ -5,7 +5,7 @@
 | Versi | 0.1 (draft) |
 | Tanggal | 2026-11-24 |
 | Baseline proses | `SYSTEM_DESIGN_PRODUCTION_GUIDE_CLAUDE.md` |
-| Fase aktif | **Fase 1 — Discovery / Assessment** (selesai, menunggu review) |
+| Fase aktif | **Fase 3 — Implementation plan** ([04-implementation-plan.md](04-implementation-plan.md), menunggu approval). Fase 1–2 selesai |
 
 ## 1. Latar belakang
 
@@ -69,6 +69,12 @@ Bot Telegram "NetBackup Assistant" dipakai tim Storage & Backup untuk dua hal: m
 | 2026-11-24 | Nama proyek dan repo: **ATLAS** | Owner |
 | 2026-11-24 | **Scope diperluas:** ATLAS mencakup web dashboard milik owner (fitur ditambahkan ke web yang sudah ada); bot Telegram menjadi bagian dashboard, termasuk halaman healthcheck proses bot & collector. Pengembangan dimulai di DEV lokal (laptop). Web akan diassessment dulu (adendum Fase 1) sebelum design | Owner |
 | 2026-11-24 | Semua deployment wajib mengikuti `docs/process/deployment-workflow.md` (turunan guide §10–12, §16, §20). Deviasi dari guide: Windows + NSSM tanpa Docker; GitHub (bukan GitLab) untuk repo/PR/CI | Owner |
+| 2026-11-26 | Nama database: `atlas` (lowercase, permintaan "ATLAS"); DB baru di cluster yang sama, `dbbackup` tidak diubah (opsi A) | Owner |
+| 2026-11-26 | `dbbackup` diisi `convert_policy_cache_autoupdatedb.py` dari `policy_cache.json`; `server_inventory` diimport manual | Owner |
+| 2026-11-26 | **Semua menu dashboard berbasis database**; tambah menu Backup Inventory (cari hostname & aplikasi) | Owner |
+| 2026-11-26 | Design [03](03-design-db-dashboard.md) disetujui ("iya"). Pertanyaan §10 yang tidak dijawab spesifik memakai usulan: hari jadwal dibenarkan (1 = Minggu), `schedule_days` diisi, cari hostname **cocok sebagian** (sama dengan bot), host tanpa backup ditampilkan, retensi kapasitas 90 hari + 1 snapshot/hari, CMDB dari OSPLA *Master Inventory*. Dapat diubah owner | Owner (default usulan) |
+| 2026-11-26 | Migrasi schema memakai file SQL murni + `scripts/db/migrate.py` (deviasi dari contoh Alembic di guide; tanpa ORM) | Owner (bagian design) |
+| 2026-11-26 | Driver DB: psycopg 3 + psycopg_pool | Usulan plan [04](04-implementation-plan.md) |
 
 ## 7. Pertanyaan terbuka
 
