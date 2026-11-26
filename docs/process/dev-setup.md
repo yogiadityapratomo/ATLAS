@@ -53,15 +53,15 @@ Catatan: data ini berasal dari production (termasuk nama PIC di CMDB) — hanya 
 ```powershell
 # sekali saja: venv di root repo
 python -m venv .venv
-.venv\Scripts\pip install -r web\requirements.txt pandas psycopg2-binary
+.venv\Scripts\pip install -r legacy\web-v4\requirements.txt pandas psycopg2-binary
 
 # jalankan (hanya bisa diakses dari laptop ini)
-powershell -ExecutionPolicy Bypass -File web\run_dev.ps1
+powershell -ExecutionPolicy Bypass -File legacy\web-v4\run_dev.ps1
 # buka http://127.0.0.1:8000
 ```
 
-- `web/.env` dibuat otomatis dari `web/.env.example` dengan `ATLAS_ALLOW_LIVE_NBU=0` → `POST /api/generate` ditolak (403), dashboard memakai cache.
-- Token NBU dibaca dari `web/.env` (`NBU_TBS_TOKEN`, dst.), tidak lagi tertulis di kode.
+- `legacy/web-v4/.env` dibuat otomatis dari `legacy/web-v4/.env.example` dengan `ATLAS_ALLOW_LIVE_NBU=0` → `POST /api/generate` ditolak (403), dashboard memakai cache.
+- Token NBU dibaca dari `legacy/web-v4/.env` (`NBU_TBS_TOKEN`, dst.), tidak lagi tertulis di kode.
 
 ## Belum disiapkan
 

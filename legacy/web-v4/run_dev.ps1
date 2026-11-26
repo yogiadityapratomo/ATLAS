@@ -1,18 +1,19 @@
 <#
   run_dev.ps1 — jalankan dashboard di laptop (DEV), hanya bisa diakses dari laptop ini.
-  Pemakaian:  powershell -ExecutionPolicy Bypass -File web\run_dev.ps1   [-Port 8000]
+  Pemakaian:  powershell -ExecutionPolicy Bypass -File legacy\web-v4\run_dev.ps1   [-Port 8000]
 #>
 param([int]$Port = 8000)
 
 $here = Split-Path -Parent $MyInvocation.MyCommand.Path
-$py   = Join-Path (Split-Path -Parent $here) '.venv\Scripts\python.exe'
+$root = Split-Path -Parent (Split-Path -Parent $here)   # legacy\web-v4 -> root repo
+$py   = Join-Path $root '.venv\Scripts\python.exe'
 if (-not (Test-Path $py)) {
-    Write-Host "venv belum ada. Buat dari root repo:  python -m venv .venv ; .venv\Scripts\pip install -r web\requirements.txt"
+    Write-Host "venv belum ada. Buat dari root repo:  python -m venv .venv ; .venv\Scripts\pip install -r legacy\web-v4\requirements.txt"
     exit 1
 }
 if (-not (Test-Path (Join-Path $here '.env'))) {
     Copy-Item (Join-Path $here '.env.example') (Join-Path $here '.env')
-    Write-Host "web\.env dibuat dari .env.example (Generate live NBU nonaktif)."
+    Write-Host "legacy\web-v4\.env dibuat dari .env.example (Generate live NBU nonaktif)."
 }
 
 Set-Location $here
