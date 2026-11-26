@@ -32,7 +32,7 @@ Remove-Item Env:PGPASSWORD
 
 ## Aturan DEV
 
-- Aplikasi **tidak** memakai superuser `postgres`. Database dan role aplikasi (least privilege) dibuat di Fase 2/3 setelah design disetujui.
+- Aplikasi **tidak** memakai superuser `postgres`. Superuser hanya dipakai `scripts/db/bootstrap.py` (membuat role & database). Aplikasi, job, dan test memakai role least privilege di bawah.
 - Data production tidak disalin mentah ke DEV. Gunakan data sintetis, mock NBU, atau salinan cache yang sudah disetujui (guide §10).
 - Bot Telegram di DEV memakai token bot uji, bukan token produksi.
 
@@ -40,7 +40,8 @@ Remove-Item Env:PGPASSWORD
 
 | Database | Isi | Cara mengisi ulang |
 |---|---|---|
-| `atlas` | Kosong (schema dibuat lewat migrasi setelah design Fase 2 disetujui). Collation `builtin C.UTF-8`, timezone `Asia/Jakarta` | — |
+| `atlas` | Schema V001 (core, audit, cmdb, report) + CMDB dari Excel OSPLA 2026-02-03 (14.185 baris sumber, 13.903 unik). Collation `builtin C.UTF-8`, timezone `Asia/Jakarta`, owner `atlas_owner` | lihat "Database ATLAS" |
+| `atlas_test` | Khusus test integrasi; dihapus & dimigrasi ulang otomatis oleh `pytest` | — |
 | `dbbackup` | Struktur = production (dari `pg_inventory`), collation `English_United States.1252` | lihat di bawah |
 | `dbbackup.backup_inventory_*` | Diisi loader legacy production apa adanya (termasuk bug `day_map`) dari salinan `policy_cache.json` | `.venv\Scripts\python.exe scripts\dev\load_legacy_dbbackup.py` |
 | `dbbackup.server_inventory` | Dari Excel OSPLA sheet `Master Inventory` (asumsi: sumber import manual production) | `.venv\Scripts\python.exe scripts\dev\load_server_inventory_xlsx.py --xlsx "<path xlsx>"` |
@@ -69,27 +70,47 @@ powershell -ExecutionPolicy Bypass -File legacy\web-v4\run_dev.ps1
 # sekali saja: pasang paket atlas (editable) + alat dev ke venv root
 .venv\Scripts\pip install -e ".[dev]"
 
-# konfigurasi: salin .env.example menjadi .env di root (JANGAN di-commit)
-Copy-Item .env.example .env
+# konfigurasi: .env di root (JANGAN di-commit) — dibuat otomatis oleh bootstrap di bawah
 
 # lint & format
 .venv\Scripts\python.exe -m ruff check .
 .venv\Scripts\python.exe -m ruff format --check .
 
-# test unit (tanpa database)
+# semua test (unit + integrasi ke atlas_test). Test integrasi otomatis dilewati jika .env belum punya password role.
 .venv\Scripts\python.exe -m pytest
-
-# test integrasi ke PostgreSQL lokal (opsional; password hanya di environment sesi ini)
-$env:ATLAS_TEST_DB_USER = 'postgres'; $env:ATLAS_TEST_DB_NAME = 'postgres'
-$env:ATLAS_TEST_DB_PASSWORD = (Get-Content "$env:USERPROFILE\.atlas\pg_postgres_password.txt" -Raw).Trim()
-.venv\Scripts\python.exe -m pytest -m integration
-Remove-Item Env:ATLAS_TEST_DB_PASSWORD
+.venv\Scripts\python.exe -m pytest -m "not integration"   # unit saja
 ```
 
-- Superuser `postgres` hanya dipakai test integrasi PR-1 (`SELECT`, `pg_sleep`). Mulai PR-2 test integrasi memakai DB `atlas_test` dan role aplikasi.
 - Log aplikasi ditulis ke `logs/<komponen>.log` (JSON, satu baris per event, rotasi harian, disimpan 30 hari).
+
+## Database ATLAS (role, migrasi, data CMDB)
+
+```powershell
+# 1) sekali per laptop/server: role + database (superuser; di production = CR)
+$env:PGPASSWORD = (Get-Content "$env:USERPROFILE\.atlas\pg_postgres_password.txt" -Raw).Trim()
+.venv\Scripts\python.exe scripts\db\bootstrap.py --database atlas --database atlas_test --generate-missing-passwords
+Remove-Item Env:PGPASSWORD
+
+# 2) schema (setiap ada file baru di db/migrations/)
+.venv\Scripts\python.exe scripts\db\migrate.py --dry-run
+.venv\Scripts\python.exe scripts\db\migrate.py
+
+# 3) data CMDB (manual, setiap ada Excel OSPLA baru)
+.venv\Scripts\python.exe -m atlas.collectors.cmdb_import --xlsx "<path>\OSPLA Managed Server-03022026.xlsx"
+```
+
+| Role | Dipakai oleh | Hak utama |
+|---|---|---|
+| `atlas_owner` (NOLOGIN) | — | Pemilik semua objek; satu-satunya yang bisa DDL & drop partisi audit |
+| `atlas_migrator` | `migrate.py` | `SET ROLE atlas_owner` saat migrasi (tidak mewarisi hak otomatis) |
+| `atlas_app` | job/collector | Tulis data, INSERT audit, tabel TEMP untuk staging |
+| `atlas_web` | web | Baca data + INSERT/SELECT audit |
+| `atlas_readonly` | pembaca lain | SELECT saja, sesi `default_transaction_read_only=on` |
+
+- `--generate-missing-passwords` mengisi password acak ke `.env` (tidak pernah dicetak). Ditolak bila `ATLAS_ENV=prod`.
+- `bootstrap.py` menolak berjalan bila `log_statement` server = `all`/`ddl` (password role bisa masuk log server).
+- Impor CMDB: file yang sama diimpor ulang = 0 baris ditulis; jumlah baris turun > 50% ditolak kecuali `--allow-shrink`.
 
 ## Belum disiapkan
 
-- Role aplikasi ATLAS (`atlas_owner`, `atlas_migrator`, `atlas_app`, `atlas_readonly`) dan migrasi schema — Fase 2/3.
 - Bot Telegram uji + mock NBU untuk menjalankan semua komponen sekaligus.
