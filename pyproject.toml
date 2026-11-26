@@ -31,7 +31,7 @@ include = ["atlas*"]
 testpaths = ["tests"]
 addopts = "-ra --strict-markers"
 markers = [
-    "integration: butuh PostgreSQL (DB atlas_test); dilewati jika ATLAS_TEST_DB_* tidak diset",
+    "integration: butuh PostgreSQL (DB atlas_test, role dari .env); dilewati jika password role belum ada",
 ]
 
 # ---------------------------------------------------------------- ruff

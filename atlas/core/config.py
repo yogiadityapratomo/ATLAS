@@ -19,7 +19,7 @@ from atlas.core.errors import ConfigError
 REPO_ROOT = Path(__file__).resolve().parents[2]
 ENVIRONMENTS = ("dev", "staging", "prod")
 LOG_LEVELS = ("debug", "info", "warning", "error")
-DbRole = Literal["web", "app"]
+DbRole = Literal["web", "app", "migrator", "readonly"]
 
 
 class Secret:
@@ -64,6 +64,8 @@ class Settings:
     db_name: str
     db_web: DbCredentials
     db_app: DbCredentials
+    db_migrator: DbCredentials
+    db_readonly: DbCredentials
     db_pool_min: int
     db_pool_max: int
     db_connect_timeout_s: int
@@ -72,7 +74,12 @@ class Settings:
     allow_live_nbu: bool
 
     def db_credentials(self, role: DbRole) -> DbCredentials:
-        return self.db_web if role == "web" else self.db_app
+        return {
+            "web": self.db_web,
+            "app": self.db_app,
+            "migrator": self.db_migrator,
+            "readonly": self.db_readonly,
+        }[role]
 
     def db_conninfo(self, role: DbRole, application_name: str) -> str:
         """String koneksi libpq. Hanya untuk diteruskan ke driver — jangan pernah di-log."""
@@ -100,7 +107,8 @@ class Settings:
 
     def secret_values(self) -> list[str]:
         """Semua nilai rahasia yang aktif — diserahkan ke filter secret di logging."""
-        return [s.get() for s in (self.db_web.password, self.db_app.password) if s]
+        creds = (self.db_web, self.db_app, self.db_migrator, self.db_readonly)
+        return [c.password.get() for c in creds if c.password]
 
 
 # ---------------------------------------------------------------------------- loader
@@ -138,6 +146,14 @@ def load_settings(env_file: Path | None = None, environ: Mapping[str, str] | Non
         db_app=DbCredentials(
             reader.text("ATLAS_DB_USER_APP", default="atlas_app"),
             Secret(reader.text("ATLAS_DB_PASSWORD_APP", default="")),
+        ),
+        db_migrator=DbCredentials(
+            reader.text("ATLAS_DB_USER_MIGRATOR", default="atlas_migrator"),
+            Secret(reader.text("ATLAS_DB_PASSWORD_MIGRATOR", default="")),
+        ),
+        db_readonly=DbCredentials(
+            reader.text("ATLAS_DB_USER_READONLY", default="atlas_readonly"),
+            Secret(reader.text("ATLAS_DB_PASSWORD_READONLY", default="")),
         ),
         db_pool_min=reader.integer("ATLAS_DB_POOL_MIN", default=2, minimum=1, maximum=20),
         db_pool_max=reader.integer("ATLAS_DB_POOL_MAX", default=5, minimum=1, maximum=50),
