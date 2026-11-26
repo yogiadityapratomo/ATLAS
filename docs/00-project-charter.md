@@ -5,7 +5,7 @@
 | Versi | 0.1 (draft) |
 | Tanggal | 2026-11-24 |
 | Baseline proses | `SYSTEM_DESIGN_PRODUCTION_GUIDE_CLAUDE.md` |
-| Fase aktif | **Fase 3 — Implementation plan** ([04-implementation-plan.md](04-implementation-plan.md), menunggu approval). Fase 1–2 selesai |
+| Fase aktif | **Fase 4 — Development**, PR-1 `refactor/project-structure`. Fase 1–3 selesai ([plan](04-implementation-plan.md)) |
 
 ## 1. Latar belakang
 
@@ -75,6 +75,7 @@ Bot Telegram "NetBackup Assistant" dipakai tim Storage & Backup untuk dua hal: m
 | 2026-11-26 | Design [03](03-design-db-dashboard.md) disetujui ("iya"). Pertanyaan §10 yang tidak dijawab spesifik memakai usulan: hari jadwal dibenarkan (1 = Minggu), `schedule_days` diisi, cari hostname **cocok sebagian** (sama dengan bot), host tanpa backup ditampilkan, retensi kapasitas 90 hari + 1 snapshot/hari, CMDB dari OSPLA *Master Inventory*. Dapat diubah owner | Owner (default usulan) |
 | 2026-11-26 | Migrasi schema memakai file SQL murni + `scripts/db/migrate.py` (deviasi dari contoh Alembic di guide; tanpa ORM) | Owner (bagian design) |
 | 2026-11-26 | Driver DB: psycopg 3 + psycopg_pool | Usulan plan [04](04-implementation-plan.md) |
+| 2026-11-26 | Plan [04](04-implementation-plan.md) disetujui ("lanjut"), dengan tambahan: **audit & event log** untuk koneksi DB, web, job, dan event lain + menu Audit Log ([05](05-design-audit-log.md)). Urutan PR disesuaikan: fondasi (audit termasuk) → kapasitas ke DB → Backup Inventory → menu Audit Log | Owner |
 
 ## 7. Pertanyaan terbuka
 

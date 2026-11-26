@@ -19,13 +19,15 @@ ATLAS/
 │   ├── core/                      # lapisan dasar, dipakai semua komponen
 │   │   ├── config.py              #   baca .env → objek Settings (tervalidasi saat start)
 │   │   ├── db.py                  #   connection pool, transaksi, advisory lock
-│   │   ├── logging.py             #   log JSON + rotasi + filter secret
+│   │   ├── logging.py             #   log JSON + rotasi + filter secret + request_id
+│   │   ├── audit.py               #   event audit: antrean + penulis batch ke audit.event
 │   │   └── errors.py              #   AtlasError + ID error
 │   ├── repositories/              # SEMUA SQL ada di sini (satu file per domain)
 │   │   ├── runs.py                #   core.collect_run
 │   │   ├── capacity.py            #   capacity.*
 │   │   ├── inventory.py           #   nbu.backup_inventory + report.*
-│   │   └── cmdb.py                #   cmdb.*
+│   │   ├── cmdb.py                #   cmdb.*
+│   │   └── audit.py               #   audit.event (insert batch, query menu)
 │   ├── services/                  # logika bisnis, tanpa SQL & tanpa HTTP → mudah dites
 │   │   ├── policy_parser.py       #   policy_cache.json → baris inventory (mapping hari benar)
 │   │   ├── capacity.py            #   transform disk pool & tape (dari web V4)
@@ -35,7 +37,8 @@ ATLAS/
 │   │   ├── nbu_client.py          #   HTTP ke master NBU: timeout, retry, backoff
 │   │   ├── capacity_job.py        #   pengganti scheduled_collect.py
 │   │   ├── inventory_job.py       #   policy_cache.json → nbu.backup_inventory
-│   │   └── cmdb_import.py         #   Excel OSPLA → cmdb.server_inventory
+│   │   ├── cmdb_import.py         #   Excel OSPLA → cmdb.server_inventory
+│   │   └── maintenance_job.py     #   retensi partisi (kapasitas, audit)
 │   └── web/                       # FastAPI (hanya baca DB)
 │       ├── main.py                #   app, middleware, static
 │       ├── deps.py                #   dependency: koneksi read-only, cache
@@ -44,6 +47,7 @@ ATLAS/
 │       └── routes/
 │           ├── capacity.py        #   /api/data, /api/export
 │           ├── inventory.py       #   /api/backup-inventory/*
+│           ├── audit.py           #   /api/audit/*
 │           └── health.py          #   /api/health
 ├── frontend/                      # tanpa build step (jQuery)
 │   ├── index.html
@@ -52,6 +56,7 @@ ATLAS/
 │   │   ├── common.js              #   util bersama (esc, fmtNum, buildTable, statTile, alert)
 │   │   ├── capacity.js            #   menu Disk Pool & Tape (dari app.js V4)
 │   │   ├── inventory.js           #   menu Backup Inventory (baru)
+│   │   ├── audit.js               #   menu Audit Log (baru)
 │   │   └── main.js                #   navigasi & lifecycle
 │   └── vendor/                    #   jquery, html2canvas
 ├── db/
@@ -148,24 +153,30 @@ Setiap task = satu atau beberapa commit kecil; setiap branch = satu PR dengan bu
 | **PR-0** `chore/dev-local-baseline` | | | | |
 | 0.1 | Commit pekerjaan DEV yang sudah ada: alat `pg_inventory`, assessment DB, web V4 (token dipindah ke `.env`), skrip dev, design & plan | `docs/`, `scripts/`, `web/` | Pemindaian secret bersih; web jalan di 127.0.0.1 | Revert PR |
 | **PR-1** `refactor/project-structure` | | | | |
-| 1.1 | Pindah `web/` → `legacy/web-v4/` (referensi) | `legacy/` | — | Revert |
-| 1.2 | Kerangka `atlas/`, `frontend/`, `tests/`, `pyproject.toml`, `.env.example`, `CHANGELOG.md` | struktur §1 | `pytest` jalan (0 test), `ruff` bersih | Revert |
-| 1.3 | `atlas/core`: config, logging, db pool, errors | `atlas/core/*` | Unit test config & filter secret | Revert |
+| 1.1 | Pindah `web/` → `legacy/web-v4/` (referensi, tetap bisa dijalankan) + `.gitattributes` (line ending konsisten) | `legacy/` | Web V4 tetap jalan dari lokasi baru | Revert |
+| 1.2 | Kerangka `atlas/`, `frontend/`, `tests/`, `pyproject.toml`, `.env.example`, `CHANGELOG.md` | struktur §1 | `pytest` & `ruff` bersih | Revert |
+| 1.3 | `atlas/core`: config, logging (JSON + rotasi + filter secret + ID error + request_id), db pool (event koneksi), errors | `atlas/core/*` | Unit test config, filter secret, ID error, format log | Revert |
 | **PR-2** `feat/db-foundation` | | | | |
 | 2.1 | `scripts/db/migrate.py` + `core.schema_migrations` (checksum) | `scripts/db/`, `db/migrations/` | Test: DB kosong → semua versi; ulang = no-op; file berubah = ditolak | `DROP DATABASE atlas` (DEV) |
-| 2.2 | `V001__init.sql`: schema, role, tabel, partisi, constraint, index, view | `db/migrations/` | Test integrasi: struktur & hak akses role (readonly tidak bisa INSERT) | Migrasi down manual (DEV) |
-| 2.3 | Import CMDB (`COPY` + upsert + `row_hash`) | `collectors/cmdb_import.py`, `repositories/cmdb.py` | 14.185 baris; impor ulang tanpa perubahan = 0 baris ditulis | Data lama utuh (transaksi) |
-| **PR-3** `feat/backup-inventory` | | | | |
-| 3.1 | `services/policy_parser.py` (gabungan logika bot & loader, mapping hari benar) | `services/` | Unit test: hari, retensi SLP/non-SLP, filter; regresi vs `check_v2` | — |
-| 3.2 | Job inventory: `COPY` → upsert diff → refresh MV → `NOTIFY`, dengan advisory lock | `collectors/inventory_job.py`, `repositories/inventory.py` | Run kedua tanpa perubahan = 0 update; dua run paralel → satu ditolak | Transaksi |
-| 3.3 | API search / apps / export + cache + ETag | `web/routes/inventory.py`, `web/cache.py` | API test: validasi, not_found, limit, 304; performa < 1 dtk | Revert |
-| 3.4 | Menu Backup Inventory (UI) + pecah `app.js` jadi modul | `frontend/` | Uji manual di browser + capture | Revert |
-| **PR-4** `feat/capacity-db` | | | | |
-| 4.1 | `nbu_client.py` + `capacity_job.py` menulis DB (dan tetap JSON selama transisi) | `collectors/` | Integrasi dengan mock NBU: sukses, sebagian gagal, timeout | Collector V4 lama tetap ada |
-| 4.2 | `/api/data` & `/api/export` dari DB (bentuk JSON sama) | `web/routes/capacity.py` | **Regresi: JSON dari DB identik dengan JSON file** | Arahkan kembali ke legacy |
-| 4.3 | `/api/health`, retensi partisi, dokumentasi & runbook | `web/routes/health.py`, `docs/` | API test health | Revert |
+| 2.2 | `V001__init.sql`: schema, role, tabel (termasuk `audit.event`), partisi, constraint, index, view | `db/migrations/` | Test integrasi: struktur & hak akses role (web tidak bisa UPDATE/DELETE audit) | Migrasi down manual (DEV) |
+| 2.3 | Penulis audit write-behind (antrean + `COPY` batch + fallback file) | `atlas/core/audit.py`, `repositories/audit.py` | Test: event masuk tabel; DB mati → tidak crash, tercatat di file; secret tersaring | Revert |
+| 2.4 | Import CMDB (`COPY` + upsert + `row_hash`, advisory lock, event job) | `collectors/cmdb_import.py`, `repositories/cmdb.py` | 14.185 baris; impor ulang tanpa perubahan = 0 baris ditulis | Data lama utuh (transaksi) |
+| **PR-3** `feat/capacity-db` | | | | |
+| 3.1 | `nbu_client.py` + `capacity_job.py` menulis DB (dan tetap JSON selama transisi) | `collectors/` | Integrasi dengan mock NBU: sukses, sebagian gagal, timeout | Collector V4 lama tetap ada |
+| 3.2 | Web baru `atlas/web` + `frontend/` (port tampilan V4, `app.js` dipecah per menu), middleware audit `http_request` | `atlas/web/`, `frontend/` | Uji visual sebelum/sesudah | Jalankan `legacy/web-v4` |
+| 3.3 | `/api/data` & `/api/export` dari DB (bentuk JSON sama) + cache ber-versi + ETag | `web/routes/capacity.py`, `web/cache.py` | **Regresi: JSON dari DB identik dengan JSON file**; 304 bekerja | Jalankan `legacy/web-v4` |
+| 3.4 | `/api/health` | `web/routes/health.py` | API test | Revert |
+| **PR-4** `feat/backup-inventory` | | | | |
+| 4.1 | `services/policy_parser.py` (gabungan logika bot & loader, mapping hari benar) | `services/` | Unit test: hari, retensi SLP/non-SLP, filter; regresi vs `check_v2` | — |
+| 4.2 | Job inventory: `COPY` → upsert diff → refresh MV → `NOTIFY`, dengan advisory lock | `collectors/inventory_job.py`, `repositories/inventory.py` | Run kedua tanpa perubahan = 0 update; dua run paralel → satu `job_skipped_locked` | Transaksi |
+| 4.3 | API search / apps / export | `web/routes/inventory.py` | API test: validasi, not_found, limit; performa < 1 dtk | Revert |
+| 4.4 | Menu Backup Inventory (UI) | `frontend/js/inventory.js` | Uji manual di browser | Revert |
+| **PR-5** `feat/audit-log-menu` | | | | |
+| 5.1 | API `/api/audit/events`, `/summary`, `/export` (keyset pagination) | `web/routes/audit.py`, `repositories/audit.py` | API test filter & pagination; 100 ribu event < 1 dtk | Revert |
+| 5.2 | Menu Audit Log (UI) + panel detail per `request_id` | `frontend/js/audit.js` | Uji manual; acceptance criteria design 05 §6 | Revert |
+| 5.3 | Retensi partisi (kapasitas 90 hari, audit 180 hari), runbook | `collectors/maintenance_job.py`, `docs/` | Test drop partisi di DB test | Revert |
 
-Urutan PR-3 sebelum PR-4 karena Backup Inventory adalah fitur baru yang diminta, sementara Disk Pool & Tape sudah berjalan.
+Urutan: aplikasi baru lebih dulu mereproduksi menu yang sudah ada (PR-3) sebelum menambah fitur baru (PR-4, PR-5), sehingga dashboard tidak pernah dalam kondisi setengah jadi. Design audit: [05-design-audit-log.md](05-design-audit-log.md).
 
 ## 5. Definition of Done per PR
 

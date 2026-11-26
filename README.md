@@ -8,8 +8,9 @@ Proyek restrukturisasi bot Telegram "NetBackup Assistant" (cari backup per hostn
 |---|---|---|
 | 1 | Discovery / Assessment (+ adendum PostgreSQL) | Selesai (draft) |
 | 2 | Requirement & Design — dashboard berbasis database | Disetujui 2026-11-26 ([docs/03-design-db-dashboard.md](docs/03-design-db-dashboard.md)) |
-| 3 | Implementation Plan | **Draft — menunggu approval** ([docs/04-implementation-plan.md](docs/04-implementation-plan.md)) |
-| 4–9 | Development → Operations | Belum mulai |
+| 3 | Implementation Plan (+ design audit log) | Disetujui 2026-11-26 ([docs/04-implementation-plan.md](docs/04-implementation-plan.md), [docs/05-design-audit-log.md](docs/05-design-audit-log.md)) |
+| 4 | Development | **Berjalan** — PR-0 baseline, PR-1 struktur proyek |
+| 5–9 | Quality → Operations | Belum mulai |
 
 Detail fase, keputusan, dan pertanyaan terbuka: [docs/00-project-charter.md](docs/00-project-charter.md).
 
