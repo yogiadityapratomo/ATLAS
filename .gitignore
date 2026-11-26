@@ -18,3 +18,10 @@ auditlog_output/
 *.xlsx
 *.csv
 *.LOCK
+
+# Build & tool cache
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
