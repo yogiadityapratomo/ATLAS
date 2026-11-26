@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NetBackup Capacity Report</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="sidebar-logo">📊</div>
+      <nav class="sidebar-nav">
+        <button class="side-btn active" data-view="diskpool" title="Disk Pool">
+          <span class="side-icon">🗄️</span>
+        </button>
+        <button class="side-btn" data-view="tape" title="Tape Library">
+          <span class="side-icon">📼</span>
+        </button>
+      </nav>
+      <div class="sidebar-spacer"></div>
+    </aside>
+
+    <div class="main">
+      <header class="topbar">
+        <div class="topbar-title">
+          <h1>NetBackup Capacity Report</h1>
+          <span id="last-updated" class="muted">Belum ada data.</span>
+        </div>
+        <div class="topbar-actions">
+          <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="global-search" placeholder="Cari disk pool / site / master...">
+          </div>
+          <button id="btn-export" class="icon-btn" title="Export Excel">⬇️</button>
+          <button id="btn-capture" class="icon-btn" title="Capture Gambar Capacity (Summary by Site, Grouping by Master Server, &amp; Detail Tape Library)">📸</button>
+        </div>
+      </header>
+
+      <div id="alert-box"></div>
+
+      <section id="view-diskpool" class="view active">
+        <div class="stat-grid" id="dp-stats"></div>
+        <div class="cutoff-note" id="dp-cutoff"></div>
+
+        <div class="card-grid">
+          <div class="card card-table" id="card-summary-site">
+            <div class="card-head"><h3>Capacity Appliance Summary by Site</h3></div>
+            <div class="card-body" id="dp-summary-table"></div>
+          </div>
+          <div class="card card-chart">
+            <div class="card-head"><h3>Kapasitas per Site</h3></div>
+            <div class="card-body" id="dp-summary-chart"></div>
+          </div>
+        </div>
+
+        <div class="ranking-grid" id="ranking-grid-master">
+          <div class="card">
+            <div class="card-head ranking-head">
+              <span class="ranking-badge ranking-badge-brn">BRN</span>
+              <h3>Capacity Appliance Grouping by Master Server</h3>
+            </div>
+            <div class="card-body" id="dp-ranking-brn"></div>
+          </div>
+          <div class="card">
+            <div class="card-head ranking-head">
+              <span class="ranking-badge ranking-badge-bsd">BSD</span>
+              <h3>Capacity Appliance Grouping by Master Server</h3>
+            </div>
+            <div class="card-body" id="dp-ranking-bsd"></div>
+          </div>
+          <div class="card">
+            <div class="card-head ranking-head">
+              <span class="ranking-badge ranking-badge-tbs">TBS</span>
+              <h3>Capacity Appliance Grouping by Master Server</h3>
+            </div>
+            <div class="card-body" id="dp-ranking-tbs"></div>
+          </div>
+        </div>
+
+        <div class="card card-detail-freeze">
+          <div class="card-head ranking-head">
+            <span class="ranking-badge ranking-badge-brn">BRN</span>
+            <h3>Capacity Appliance Detail by Master Server</h3>
+          </div>
+          <div class="card-body">
+            <div class="search-box detail-search">
+              <span class="search-icon">🔍</span>
+              <input type="text" class="dp-detail-search" data-master="BRN" placeholder="Cari site / disk pool...">
+            </div>
+            <div id="dp-detail-brn" class="detail-table-freeze"></div>
+          </div>
+        </div>
+
+        <div class="card card-detail-freeze">
+          <div class="card-head ranking-head">
+            <span class="ranking-badge ranking-badge-bsd">BSD</span>
+            <h3>Capacity Appliance Detail by Master Server</h3>
+          </div>
+          <div class="card-body">
+            <div class="search-box detail-search">
+              <span class="search-icon">🔍</span>
+              <input type="text" class="dp-detail-search" data-master="BSD" placeholder="Cari site / disk pool...">
+            </div>
+            <div id="dp-detail-bsd" class="detail-table-freeze"></div>
+          </div>
+        </div>
+
+        <div class="card card-detail-freeze">
+          <div class="card-head ranking-head">
+            <span class="ranking-badge ranking-badge-tbs">TBS</span>
+            <h3>Capacity Appliance Detail by Master Server</h3>
+          </div>
+          <div class="card-body">
+            <div class="search-box detail-search">
+              <span class="search-icon">🔍</span>
+              <input type="text" class="dp-detail-search" data-master="TBS" placeholder="Cari site / disk pool...">
+            </div>
+            <div id="dp-detail-tbs" class="detail-table-freeze"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-tape" class="view">
+        <div class="stat-grid" id="tp-stats"></div>
+        <div class="cutoff-note" id="tp-cutoff"></div>
+
+        <div class="card">
+          <div class="card-head"><h3>Summary per Tape Library</h3></div>
+          <div class="card-body" id="tp-summary-chart"></div>
+        </div>
+
+        <div class="card" id="card-tape-detail">
+          <div class="card-head"><h3>Detail Tape Library</h3></div>
+          <div class="card-body" id="tp-detail-table"></div>
+        </div>
+      </section>
+
+      <footer class="app-footer">NetBackup Capacity Report &middot; Disk Pool &amp; Tape Library</footer>
+    </div>
+  </div>
+
+  <script src="/static/vendor/jquery.min.js"></script>
+  <script src="/static/vendor/html2canvas.min.js"></script>
+  <script src="/static/app.js"></script>
+</body>
+</html>
