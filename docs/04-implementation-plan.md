@@ -21,6 +21,7 @@ ATLAS/
 │   │   ├── db.py                  #   connection pool, transaksi, advisory lock
 │   │   ├── logging.py             #   log JSON + rotasi + filter secret + request_id
 │   │   ├── audit.py               #   event audit: antrean + penulis batch ke audit.event
+│   │   ├── migrations.py          #   mesin migrasi SQL (checksum, lock, transaksi per versi)
 │   │   └── errors.py              #   AtlasError + ID error
 │   ├── repositories/              # SEMUA SQL ada di sini (satu file per domain)
 │   │   ├── runs.py                #   core.collect_run
@@ -32,8 +33,10 @@ ATLAS/
 │   │   ├── policy_parser.py       #   policy_cache.json → baris inventory (mapping hari benar)
 │   │   ├── capacity.py            #   transform disk pool & tape (dari web V4)
 │   │   ├── inventory_search.py    #   parsing input pencarian, not_found
+│   │   ├── cmdb.py                #   Excel OSPLA → baris CMDB (normalisasi, row_hash, kembar)
 │   │   └── excel_export.py        #   semua export xlsx
 │   ├── collectors/                # job terjadwal / CLI (menulis DB lewat repositories)
+│   │   ├── runner.py              #   kerangka job: advisory lock, collect_run, event job_*
 │   │   ├── nbu_client.py          #   HTTP ke master NBU: timeout, retry, backoff
 │   │   ├── capacity_job.py        #   pengganti scheduled_collect.py
 │   │   ├── inventory_job.py       #   policy_cache.json → nbu.backup_inventory
@@ -62,6 +65,7 @@ ATLAS/
 ├── db/
 │   └── migrations/                # V001__init.sql, V002__... (urutan = versi)
 ├── scripts/
+│   ├── db/bootstrap.py            # role & database (sekali per environment, superuser/DBA)
 │   ├── db/migrate.py              # jalankan migrasi + catat checksum
 │   ├── dev/                       # khusus laptop (data lokal, seed)
 │   └── diagnostics/               # alat read-only (pg_inventory, audit log NBU)
@@ -157,10 +161,10 @@ Setiap task = satu atau beberapa commit kecil; setiap branch = satu PR dengan bu
 | 1.2 | Kerangka `atlas/`, `frontend/`, `tests/`, `pyproject.toml`, `.env.example`, `CHANGELOG.md` | struktur §1 | `pytest` & `ruff` bersih | Revert |
 | 1.3 | `atlas/core`: config, logging (JSON + rotasi + filter secret + ID error + request_id), db pool (event koneksi), errors | `atlas/core/*` | Unit test config, filter secret, ID error, format log | Revert |
 | **PR-2** `feat/db-foundation` | | | | |
-| 2.1 | `scripts/db/migrate.py` + `core.schema_migrations` (checksum) | `scripts/db/`, `db/migrations/` | Test: DB kosong → semua versi; ulang = no-op; file berubah = ditolak | `DROP DATABASE atlas` (DEV) |
-| 2.2 | `V001__init.sql`: schema, role, tabel (termasuk `audit.event`), partisi, constraint, index, view | `db/migrations/` | Test integrasi: struktur & hak akses role (web tidak bisa UPDATE/DELETE audit) | Migrasi down manual (DEV) |
+| 2.1 | `scripts/db/bootstrap.py` (role + database) dan `scripts/db/migrate.py` + `core.schema_migrations` (checksum) | `scripts/db/`, `atlas/core/migrations.py` | Test: DB kosong → semua versi; ulang = no-op; file berubah = ditolak | `DROP DATABASE atlas` (DEV) |
+| 2.2 | `V001__init.sql`: schema `core`/`audit`/`cmdb`/`report`, tabel (termasuk `audit.event`), partisi, constraint, index, view, GRANT. **Tabel `capacity.*` menyusul di V002 (PR-3) dan `nbu.*` di V003 (PR-4)**, agar setiap tabel lahir bersama kode & test yang memakainya | `db/migrations/` | Test integrasi: struktur & hak akses role (web tidak bisa UPDATE/DELETE audit) | Migrasi down manual (DEV) |
 | 2.3 | Penulis audit write-behind (antrean + `COPY` batch + fallback file) | `atlas/core/audit.py`, `repositories/audit.py` | Test: event masuk tabel; DB mati → tidak crash, tercatat di file; secret tersaring | Revert |
-| 2.4 | Import CMDB (`COPY` + upsert + `row_hash`, advisory lock, event job) | `collectors/cmdb_import.py`, `repositories/cmdb.py` | 14.185 baris; impor ulang tanpa perubahan = 0 baris ditulis | Data lama utuh (transaksi) |
+| 2.4 | Kerangka job (`collectors/runner.py`) + import CMDB (`COPY` + upsert + `row_hash`, advisory lock, event job) | `collectors/cmdb_import.py`, `services/cmdb.py`, `repositories/cmdb.py` | 14.185 baris; impor ulang tanpa perubahan = 0 baris ditulis | Data lama utuh (transaksi) |
 | **PR-3** `feat/capacity-db` | | | | |
 | 3.1 | `nbu_client.py` + `capacity_job.py` menulis DB (dan tetap JSON selama transisi) | `collectors/` | Integrasi dengan mock NBU: sukses, sebagian gagal, timeout | Collector V4 lama tetap ada |
 | 3.2 | Web baru `atlas/web` + `frontend/` (port tampilan V4, `app.js` dipecah per menu), middleware audit `http_request` | `atlas/web/`, `frontend/` | Uji visual sebelum/sesudah | Jalankan `legacy/web-v4` |

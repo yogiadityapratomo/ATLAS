@@ -5,7 +5,7 @@
 | Versi | 0.1 (draft) |
 | Tanggal | 2026-11-24 |
 | Baseline proses | `SYSTEM_DESIGN_PRODUCTION_GUIDE_CLAUDE.md` |
-| Fase aktif | **Fase 4 — Development**, PR-1 `refactor/project-structure`. Fase 1–3 selesai ([plan](04-implementation-plan.md)) |
+| Fase aktif | **Fase 4 — Development**, PR-2 `feat/db-foundation` (PR-0 & PR-1 menunggu review). Fase 1–3 selesai ([plan](04-implementation-plan.md)) |
 
 ## 1. Latar belakang
 
@@ -76,6 +76,9 @@ Bot Telegram "NetBackup Assistant" dipakai tim Storage & Backup untuk dua hal: m
 | 2026-11-26 | Migrasi schema memakai file SQL murni + `scripts/db/migrate.py` (deviasi dari contoh Alembic di guide; tanpa ORM) | Owner (bagian design) |
 | 2026-11-26 | Driver DB: psycopg 3 + psycopg_pool | Usulan plan [04](04-implementation-plan.md) |
 | 2026-11-26 | Plan [04](04-implementation-plan.md) disetujui ("lanjut"), dengan tambahan: **audit & event log** untuk koneksi DB, web, job, dan event lain + menu Audit Log ([05](05-design-audit-log.md)). Urutan PR disesuaikan: fondasi (audit termasuk) → kapasitas ke DB → Backup Inventory → menu Audit Log | Owner |
+| 2026-11-26 | Owner: "jalankan yang paling direkomendasikan" → PR-2 dikerjakan di branch `feat/db-foundation` (bertumpuk di PR-1) selama PR-0/PR-1 menunggu review; merge tetap berurutan | Owner |
+| 2026-11-26 | CMDB disimpan **satu baris per isi unik** + kolom `occurrences` (kunci `row_hash`), karena tidak ada kombinasi kolom yang unik (hostname sama di beberapa site; 282 baris kembar persis). Jumlah baris asli tetap 14.185 | Usulan PR-2 (implementasi design 03 §4.1) |
+| 2026-11-26 | `V001` hanya berisi core/audit/cmdb/report; `capacity.*` (V002) dan `nbu.*` (V003) ikut PR yang memakainya | Usulan PR-2 (penyesuaian plan 04) |
 
 ## 7. Pertanyaan terbuka
 

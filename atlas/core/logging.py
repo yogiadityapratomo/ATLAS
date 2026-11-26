@@ -227,11 +227,15 @@ def log_event(
     logger.log(SEVERITIES[severity], message, exc_info=exc_info, extra={EVENT_ATTR: event})
 
 
-def setup_logging(settings: Settings, component: str, *, console: bool = True) -> logging.Logger:
+def setup_logging(
+    settings: Settings, component: str, *, console: bool = True, announce: bool = True
+) -> logging.Logger:
     """Pasang handler file JSON (rotasi tengah malam, simpan 30 hari) + konsol.
 
     Satu file per komponen (``logs/web.log``, ``logs/capacity_job.log``, …) agar dua proses
     tidak berebut rotasi file yang sama di Windows. Aman dipanggil ulang (handler lama diganti).
+    ``announce=False``: event ``config_loaded`` ditunda — panggil :func:`announce_startup` setelah
+    penulis audit terpasang agar event itu juga masuk ``audit.event``.
     """
     for secret in settings.secret_values():
         REDACTOR.add_secret(secret)
@@ -262,6 +266,12 @@ def setup_logging(settings: Settings, component: str, *, console: bool = True) -
         root.addHandler(handler)
 
     logger = logging.getLogger(f"atlas.{component}")
+    if announce:
+        announce_startup(settings, logger)
+    return logger
+
+
+def announce_startup(settings: Settings, logger: logging.Logger) -> None:
     log_event(
         logger,
         "system",
@@ -273,4 +283,3 @@ def setup_logging(settings: Settings, component: str, *, console: bool = True) -
         allow_live_nbu=settings.allow_live_nbu,
         pid=os.getpid(),
     )
-    return logger
