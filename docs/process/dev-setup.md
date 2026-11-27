@@ -134,6 +134,17 @@ Remove-Item Env:PGPASSWORD
   `python -m atlas.collectors.capacity_job` dijadwalkan Task Scheduler tiap 10 menit (menggantikan `scheduled_collect.py`).
   Selama transisi, `ATLAS_CAPACITY_JSON_DIR` membuat job juga menulis JSON & Excel format V4 untuk rollback.
 
+## Mock NBU & soak test (Fase 5)
+
+```powershell
+# server tiruan 3 master NBU (hanya 127.0.0.1) dengan gangguan 503 & master mati berkala
+.venv\Scripts\python.exe scripts\dev\mock_nbu.py --port 8781 --fail-rate 0.05
+
+# soak test: web (port 8002) + semua job terjadwal ke mock NBU, laporan otomatis di akhir
+.venv\Scripts\python.exe scripts\dev\soak.py --hours 72 --cmdb-xlsx "<path OSPLA.xlsx>"
+.venv\Scripts\python.exe scripts\dev\soak.py --report logs\soak\<folder>   # laporan kapan saja
+```
+
 ## Belum disiapkan
 
 - Bot Telegram uji + mock NBU untuk menjalankan semua komponen sekaligus.

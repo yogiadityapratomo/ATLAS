@@ -22,6 +22,7 @@ dev = [
     "pytest==9.2.0",
     "ruff==0.17.6",
     "httpx==0.29.0",         # TestClient FastAPI
+    "psutil==7.2.2",         # pemantauan soak test (scripts/dev/soak.py)
 ]
 
 [tool.setuptools.packages.find]
