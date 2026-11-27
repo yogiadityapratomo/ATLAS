@@ -21,7 +21,8 @@ from atlas.web.main import create_app
 from tests.integration.conftest import connect
 
 pytestmark = pytest.mark.integration
-LEGACY_CACHE = REPO_ROOT / "legacy" / "web-v4" / "cache"
+# fixture sintetis berformat persis V4 (cache asli V4 tidak ada di repo — data production)
+LEGACY_CACHE = REPO_ROOT / "tests" / "fixtures" / "v4_cache"
 
 
 @pytest.fixture
@@ -157,12 +158,21 @@ def test_live_collect_with_fake_masters_end_to_end(app_db, itest_settings, clien
     assert (tmp_path / "report" / "capacity_report.xlsx").is_file()
 
 
-def test_health_generate_and_request_audit(app_db, client, events):
+def test_health_generate_and_request_audit(app_db, client, events, tmp_path):
+    import os
+    import shutil
+    import time
+
     assert client.get("/api/health").json()["sources"]["capacity"]["last_success_at"] is None
-    capacity_job.import_json(app_db, LEGACY_CACHE)
+    old = time.time() - 2 * 24 * 3600  # data diambil 2 hari lalu → basi (batas 30 menit)
+    for name in ("capacity_cache.json", "tape_cache.json"):
+        shutil.copy(LEGACY_CACHE / name, tmp_path / name)
+        os.utime(tmp_path / name, (old, old))
+    capacity_job.import_json(app_db, tmp_path)
     health = client.get("/api/health").json()
     assert health["db"] == "ok"
-    assert health["sources"]["capacity"]["stale"] is True  # data JSON V4 sudah lama
+    assert health["sources"]["capacity"]["stale"] is True
+    assert health["sources"]["capacity"]["age_minutes"] > 2 * 24 * 60 - 1
     assert health["status"] == "degraded"
 
     response = client.post("/api/generate")

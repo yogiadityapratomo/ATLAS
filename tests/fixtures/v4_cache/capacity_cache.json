@@ -1,0 +1,74 @@
+[
+  {
+    "Site": "BRN",
+    "Master": "BRN",
+    "Disk Pool Name": "dp_disk_brnfixapp1",
+    "Usable (TB)": 213.05,
+    "Available (TB)": 59.64,
+    "Used (TB)": 153.41,
+    "Usage (%)": 72.01
+  },
+  {
+    "Site": "BRN",
+    "Master": "BRN",
+    "Disk Pool Name": "dp_disk_brnfixapp2-worm",
+    "Usable (TB)": 112.28,
+    "Available (TB)": 31.98,
+    "Used (TB)": 80.3,
+    "Usage (%)": 71.52
+  },
+  {
+    "Site": "BSD",
+    "Master": "BSD",
+    "Disk Pool Name": "dp_disk_bsdfixapp0-kosong",
+    "Usable (TB)": 0.0,
+    "Available (TB)": 0.0,
+    "Used (TB)": 0.0,
+    "Usage (%)": 0
+  },
+  {
+    "Site": "BSD",
+    "Master": "BSD",
+    "Disk Pool Name": "dp_disk_bsdfixapp1",
+    "Usable (TB)": 223.17,
+    "Available (TB)": 95.07,
+    "Used (TB)": 128.1,
+    "Usage (%)": 57.4
+  },
+  {
+    "Site": "BSD",
+    "Master": "BSD",
+    "Disk Pool Name": "stu_disk_bsdfixapp9",
+    "Usable (TB)": 58.18,
+    "Available (TB)": 45.71,
+    "Used (TB)": 12.48,
+    "Usage (%)": 21.44
+  },
+  {
+    "Site": "BSD",
+    "Master": "TBS",
+    "Disk Pool Name": "dp_disk_bsdfixapp4",
+    "Usable (TB)": 233.84,
+    "Available (TB)": 183.29,
+    "Used (TB)": 50.55,
+    "Usage (%)": 21.62
+  },
+  {
+    "Site": "TBS",
+    "Master": "TBS",
+    "Disk Pool Name": "dp_disk_tbsfixapp1",
+    "Usable (TB)": 179.05,
+    "Available (TB)": 81.34,
+    "Used (TB)": 97.71,
+    "Usage (%)": 54.57
+  },
+  {
+    "Site": "TBS",
+    "Master": "TBS",
+    "Disk Pool Name": "dp_disk_tbsfixapp11-worm",
+    "Usable (TB)": 200.02,
+    "Available (TB)": 52.65,
+    "Used (TB)": 147.36,
+    "Usage (%)": 73.68
+  }
+]
