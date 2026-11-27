@@ -11,13 +11,14 @@ Jalankan (DEV):
 
 from __future__ import annotations
 
+import hashlib
 import logging
 import time
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
-from fastapi.responses import FileResponse, JSONResponse, Response
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 
 from atlas import __version__
@@ -28,11 +29,21 @@ from atlas.core.errors import AtlasError, DatabaseError, NotFoundError, Validati
 from atlas.core.logging import announce_startup, log_event, new_request_id, request_context, setup_logging
 from atlas.web.cache import ChangeListener
 from atlas.web.deps import AppState
-from atlas.web.routes import capacity, health
+from atlas.web.routes import capacity, health, inventory
 
 logger = logging.getLogger("atlas.web")
 FRONTEND_DIR = REPO_ROOT / "frontend"
 STATUS_BY_ERROR = {DatabaseError: 503, ValidationError: 400, NotFoundError: 404}
+
+
+def asset_version() -> str:
+    """Hash isi file CSS/JS frontend (8 karakter) — berubah hanya bila isi aset berubah."""
+    digest = hashlib.sha256()
+    for path in sorted(FRONTEND_DIR.glob("**/*")):
+        if path.suffix in (".css", ".js") and path.is_file():
+            digest.update(path.name.encode())
+            digest.update(path.read_bytes())
+    return digest.hexdigest()[:8]
 
 
 def create_app(
@@ -124,10 +135,18 @@ def create_app(
 
     app.include_router(capacity.router)
     app.include_router(health.router)
+    app.include_router(inventory.router)
+
+    index_html = (
+        (FRONTEND_DIR / "index.html")
+        .read_text(encoding="utf-8")
+        .replace("{{ASSET_VERSION}}", asset_version())
+    )
 
     @app.get("/", include_in_schema=False)
-    def index() -> FileResponse:
-        return FileResponse(FRONTEND_DIR / "index.html", headers={"Cache-Control": "no-cache"})
+    def index() -> HTMLResponse:
+        # versi aset di URL CSS/JS: rilis baru → URL baru → browser tidak memakai file lama dari cache
+        return HTMLResponse(index_html, headers={"Cache-Control": "no-cache"})
 
     @app.get("/favicon.ico", include_in_schema=False)
     def favicon() -> Response:

@@ -5,7 +5,18 @@ const VIEWS = {};
 let currentView = "diskpool";
 
 function registerView(name, options) {
-  VIEWS[name] = Object.assign({ placeholder: "Cari...", getQuery: () => "", onSearch: () => {}, onShow: () => {}, globalSearch: true }, options);
+  VIEWS[name] = Object.assign(
+    {
+      title: "NetBackup Capacity Report",
+      subtitle: null /* null = tampilkan "Data terakhir di-generate" milik menu kapasitas */,
+      placeholder: "Cari...",
+      getQuery: () => "",
+      onSearch: () => {},
+      onShow: () => {},
+      globalSearch: true,
+    },
+    options
+  );
 }
 
 function switchView(view) {
@@ -16,6 +27,10 @@ function switchView(view) {
   $(".view").removeClass("active");
   $("#view-" + view).addClass("active");
   const v = VIEWS[view];
+  $("#page-title").text(v.title);
+  $("#last-updated").toggle(v.subtitle === null);
+  $("#page-subtitle").toggle(v.subtitle !== null).text(v.subtitle || "");
+  document.title = v.title === "NetBackup Capacity Report" ? "NetBackup Capacity Report" : `${v.title} · ATLAS`;
   $("#global-search").attr("placeholder", v.placeholder).val(v.getQuery());
   $(".topbar-actions .search-box").toggle(v.globalSearch);
   $("#btn-export, #btn-capture").toggle(view === "diskpool" || view === "tape");
