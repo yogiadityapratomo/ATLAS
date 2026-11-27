@@ -100,3 +100,11 @@ def test_env_file_is_read_and_process_env_wins(tmp_path):
 def test_relative_and_absolute_log_dir(tmp_path):
     assert load_settings(environ={"ATLAS_LOG_DIR": "var/log"}).log_dir == REPO_ROOT / "var/log"
     assert load_settings(environ={"ATLAS_LOG_DIR": str(tmp_path)}).log_dir == tmp_path
+
+
+def test_env_file_location_from_atlas_env_file(tmp_path, monkeypatch):
+    shared = tmp_path / "shared.env"
+    shared.write_text("ATLAS_DB_NAME=dari_shared\n", encoding="utf-8")
+    monkeypatch.setenv("ATLAS_ENV_FILE", str(shared))
+    monkeypatch.delenv("ATLAS_DB_NAME", raising=False)
+    assert load_settings().db_name == "dari_shared"

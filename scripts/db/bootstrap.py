@@ -108,7 +108,8 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    env_file = REPO_ROOT / ".env"
+    # sama dengan load_settings(): server memakai ATLAS_ENV_FILE (shared\.env di luar folder rilis)
+    env_file = Path(os.environ.get("ATLAS_ENV_FILE") or REPO_ROOT / ".env")
     settings = load_settings()
     if settings.db_host not in LOCAL_HOSTS and not args.allow_remote:
         print(f"DITOLAK: host {settings.db_host!r} bukan localhost. Pakai --allow-remote (butuh CR).")
