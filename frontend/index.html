@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>NetBackup Capacity Report</title>
 <link rel="icon" href="/favicon.ico" type="image/svg+xml">
-<link rel="stylesheet" href="/static/css/style.css">
+<link rel="stylesheet" href="/static/css/style.css?v={{ASSET_VERSION}}">
 </head>
 <body>
   <div class="shell">
@@ -18,6 +18,9 @@
         <button class="side-btn" data-view="tape" title="Tape Library">
           <span class="side-icon">📼</span>
         </button>
+        <button class="side-btn" data-view="inventory" title="Backup Inventory">
+          <span class="side-icon">🔎</span>
+        </button>
       </nav>
       <div class="sidebar-spacer"></div>
     </aside>
@@ -25,8 +28,9 @@
     <div class="main">
       <header class="topbar">
         <div class="topbar-title">
-          <h1>NetBackup Capacity Report</h1>
+          <h1 id="page-title">NetBackup Capacity Report</h1>
           <span id="last-updated" class="muted">Belum ada data.</span>
+          <span id="page-subtitle" class="muted" style="display:none"></span>
         </div>
         <div class="topbar-actions">
           <div class="search-box">
@@ -137,14 +141,58 @@
         </div>
       </section>
 
-      <footer class="app-footer">NetBackup Capacity Report &middot; Disk Pool &amp; Tape Library</footer>
+      <section id="view-inventory" class="view">
+        <div class="card inv-form">
+          <div class="card-head">
+            <h3>Backup Inventory</h3>
+            <div class="inv-mode">
+              <button class="inv-mode-btn active" data-mode="hostname">Hostname</button>
+              <button class="inv-mode-btn" data-mode="app">Aplikasi</button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div id="inv-hostname-box">
+              <textarea id="inv-hostnames" rows="4" placeholder="Satu atau banyak hostname, pisahkan dengan koma atau baris baru. Cocok sebagian: app1 juga menemukan app10. (Ctrl+Enter untuk cari)"></textarea>
+            </div>
+            <div id="inv-app-box" style="display:none">
+              <input type="text" id="inv-app" list="inv-app-list" autocomplete="off" placeholder="Nama aplikasi (saran otomatis dari CMDB)">
+              <datalist id="inv-app-list"></datalist>
+            </div>
+            <div class="inv-controls">
+              <select id="inv-master"><option value="">Semua master</option></select>
+              <select id="inv-ptype"><option value="">Semua policy type</option></select>
+              <button id="inv-search-btn" class="btn-primary">Cari</button>
+              <button id="inv-export-btn" class="btn-secondary" title="Export hasil ke Excel">⬇️ Excel</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="inv-result" style="display:none">
+          <div class="stat-grid" id="inv-stats"></div>
+          <div class="cutoff-note" id="inv-cutoff"></div>
+          <div class="card">
+            <div class="card-head"><h3>Hasil Pencarian</h3></div>
+            <div class="card-body">
+              <div class="search-box detail-search">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="inv-table-search" placeholder="Saring hasil (policy, schedule, aplikasi...)">
+              </div>
+              <div id="inv-table"></div>
+              <div class="inv-legend"><span class="row-not-found">Not Available = hostname tidak ada di backup</span><span class="row-no-backup">Tidak ada backup = host aplikasi di CMDB tanpa policy</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <footer class="app-footer">ATLAS &middot; NetBackup Capacity, Backup Inventory &amp; Audit</footer>
     </div>
   </div>
 
   <script src="/static/vendor/jquery.min.js"></script>
   <script src="/static/vendor/html2canvas.min.js"></script>
-  <script src="/static/js/common.js"></script>
-  <script src="/static/js/main.js"></script>
-  <script src="/static/js/capacity.js"></script>
+  <script src="/static/js/common.js?v={{ASSET_VERSION}}"></script>
+  <script src="/static/js/main.js?v={{ASSET_VERSION}}"></script>
+  <script src="/static/js/capacity.js?v={{ASSET_VERSION}}"></script>
+  <script src="/static/js/inventory.js?v={{ASSET_VERSION}}"></script>
 </body>
 </html>
