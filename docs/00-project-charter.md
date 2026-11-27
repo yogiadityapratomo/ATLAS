@@ -83,6 +83,7 @@ Bot Telegram "NetBackup Assistant" dipakai tim Storage & Backup untuk dua hal: m
 | 2026-11-27 | Owner: "lanjut … pr semuanya" → PR-3, PR-4, PR-5 dikerjakan berurutan (bertumpuk), merge tetap menunggu approval | Owner |
 | 2026-11-27 | Web ATLAS tidak memicu fetch live ke NBU (`POST /api/generate` = 403); collect gagal total tidak mengosongkan dashboard | Usulan PR-3 (perlu konfirmasi owner saat review) |
 | 2026-11-27 | Backup Inventory mengikuti logika Search bot, dengan 2 perbaikan bug bot: policy `storage = null` tetap tampil; kata kunci sebagian yang ditemukan tidak dilaporkan "Not Available". Regresi vs bot asli: 2.435/2.435 baris identik | Usulan PR-4 (perlu konfirmasi owner saat review) |
+| 2026-11-27 | Retensi riwayat kapasitas default **simpan semua** (±2 juta baris/tahun); usulan design "90 hari + 1 snapshot/hari" ditunda sampai dibutuhkan. Audit 180 hari | Usulan PR-5 (perlu konfirmasi owner saat review) |
 
 ## 7. Pertanyaan terbuka
 

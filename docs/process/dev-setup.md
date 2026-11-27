@@ -127,6 +127,7 @@ Remove-Item Env:PGPASSWORD
 .venv\Scripts\python.exe -m atlas.collectors.inventory_job --cache "D:\bot\NetbackupBotV2\cache\policy_cache.json"
 ```
 
+- Operasional (jadwal job, cek kesehatan, menelusuri ID error, retensi, rollback): [docs/06-runbook-atlas.md](../06-runbook-atlas.md).
 - Web hanya membaca DB (role `atlas_web`); tidak pernah menembak master NBU. `POST /api/generate` selalu 403.
 - Data baru dari job langsung tampil: job mengirim `NOTIFY atlas_data_changed`, web membuang cache.
 - Collect live (production, lewat CR): `ATLAS_ALLOW_LIVE_NBU=1` + `NBU_*_TOKEN`, lalu
