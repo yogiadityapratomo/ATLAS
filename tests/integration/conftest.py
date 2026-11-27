@@ -86,7 +86,8 @@ def clean_db(migrated_db) -> Iterator[Settings]:
     """DB termigrasi dengan tabel data kosong (dijalankan sebelum tiap test)."""
     with connect("migrator") as conn:
         conn.execute(
-            "TRUNCATE nbu.backup_inventory, capacity.disk_pool_snapshot, capacity.tape_library_snapshot,"
+            "TRUNCATE nbu.backup_inventory, capacity.disk_pool_daily, capacity.disk_pool_snapshot,"
+            " capacity.tape_library_snapshot,"
             " cmdb.server_inventory, audit.event, core.collect_run RESTART IDENTITY CASCADE"
         )
         conn.execute("REFRESH MATERIALIZED VIEW report.backup_inventory_search")

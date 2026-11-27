@@ -72,6 +72,8 @@ def _source_job(
         rows, errors, when = ctx.data
         capacity_repo.ensure_partitions(conn)
         written = insert(conn, ctx.run_id, when, (to_db(r) for r in rows))
+        if source == "capacity":  # ringkasan harian untuk menu Historical Capacity (satu transaksi)
+            capacity_repo.rollup_daily(conn, when.date(), when.date())
         capacity_repo.notify_changed(conn, source, ctx.run_id)
         return JobResult(
             total=written,
