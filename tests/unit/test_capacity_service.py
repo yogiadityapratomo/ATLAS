@@ -14,7 +14,8 @@ from atlas.core.config import REPO_ROOT
 from atlas.services import capacity as cs
 from atlas.services.excel_export import capacity_workbook, shift_title
 
-LEGACY_CACHE = REPO_ROOT / "legacy" / "web-v4" / "cache"
+# fixture sintetis berformat persis V4 (cache asli V4 tidak ada di repo — data production)
+LEGACY_CACHE = REPO_ROOT / "tests" / "fixtures" / "v4_cache"
 TB = 1024**4
 
 
