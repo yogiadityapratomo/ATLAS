@@ -27,7 +27,15 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id/1.1.0/); versi
 - Web baru `atlas/web` (FastAPI): `/api/data` & `/api/export` dari DB dengan kontrak JSON V4, cache per versi data + ETag/304 + `LISTEN/NOTIFY`, `/api/health`, audit `http_request` per request, error ber-ID.
 - `frontend/`: tampilan V4 dengan `app.js` dipecah (`common.js`, `main.js`, `capacity.js`), peringatan bila collect terakhir gagal/parsial, favicon.
 
+- **Backup Inventory (PR-4):** `V003__backup_inventory.sql` — `nbu.backup_inventory` (kunci alami + `row_hash`, fillfactor 90, index trigram) dan materialized view `report.backup_inventory_search` (join CMDB, refresh CONCURRENTLY).
+- `services/policy_parser.py`: logika Search bot (`check_v2`) — hari 1 = Minggu, `schedule_days` terisi.
+- `atlas.collectors.inventory_job`: `policy_cache.json` → DB berbasis diff (muat ulang tanpa perubahan = 0 baris ditulis), pengaman penyusutan > 50%, `NOTIFY`.
+- API `/api/backup-inventory/search|apps|filters|export` dan menu **🔎 Backup Inventory**: cari per hostname (sebagian, sama dengan bot) atau per aplikasi CMDB (termasuk host tanpa backup), export Excel format report bot.
+- Cache busting aset frontend (`?v=<hash>`), judul halaman mengikuti menu.
+
 ### Changed
+- Pencarian hostname: policy dengan `storage = null` (26 policy aktif, mayoritas Deployment) kini ikut tampil; di bot policy ini hilang karena error.
+- Pencarian hostname: kata kunci sebagian yang menemukan host (mis. `app1` → `app10`) tidak lagi ikut dilaporkan "Not Available" (bug bot).
 - `POST /api/generate` selalu 403: web tidak lagi memicu fetch live ke master NBU (pengambilan data hanya oleh job terjadwal).
 - Collect yang gagal total tidak lagi mengosongkan dashboard (V4 menimpa JSON dengan daftar kosong); data terakhir tetap tampil dengan peringatan.
 - Web V4 dipindah dari `web/` ke `legacy/web-v4/` sebagai snapshot referensi regresi (tetap bisa dijalankan).
