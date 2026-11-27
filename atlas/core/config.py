@@ -55,6 +55,21 @@ class DbCredentials:
 
 
 @dataclass(frozen=True)
+class NbuMaster:
+    key: str  # tbs | bsd | brn
+    name: str  # TBS | BSD | BRN (sama dengan kolom "Master" di JSON V4)
+    base_url: str
+    token: Secret
+
+
+NBU_DEFAULT_URLS = {
+    "tbs": "https://tbsnbuvpapp1/netbackup",
+    "bsd": "https://bsdnbuvpapp1.telkomsel.co.id/netbackup",
+    "brn": "https://brnnbuvpapp1.telkomsel.co.id/netbackup",
+}
+
+
+@dataclass(frozen=True)
 class Settings:
     env: str
     log_level: str
@@ -72,6 +87,12 @@ class Settings:
     db_statement_timeout_ms: int
     db_slow_query_ms: int
     allow_live_nbu: bool
+    nbu_masters: tuple[NbuMaster, ...] = ()
+    nbu_timeout_s: int = 20
+    nbu_min_interval_ms: int = 200
+    nbu_max_retries: int = 3
+    capacity_json_dir: Path | None = None
+    cache_dir: Path = REPO_ROOT / "cache"
 
     def db_credentials(self, role: DbRole) -> DbCredentials:
         return {
@@ -108,7 +129,8 @@ class Settings:
     def secret_values(self) -> list[str]:
         """Semua nilai rahasia yang aktif — diserahkan ke filter secret di logging."""
         creds = (self.db_web, self.db_app, self.db_migrator, self.db_readonly)
-        return [c.password.get() for c in creds if c.password]
+        values = [c.password.get() for c in creds if c.password]
+        return values + [m.token.get() for m in self.nbu_masters if m.token]
 
 
 # ---------------------------------------------------------------------------- loader
@@ -163,6 +185,22 @@ def load_settings(env_file: Path | None = None, environ: Mapping[str, str] | Non
         ),
         db_slow_query_ms=reader.integer("ATLAS_DB_SLOW_QUERY_MS", default=500, minimum=1, maximum=600_000),
         allow_live_nbu=reader.boolean("ATLAS_ALLOW_LIVE_NBU", default=False),
+        nbu_masters=tuple(
+            NbuMaster(
+                key,
+                key.upper(),
+                reader.text(f"NBU_{key.upper()}_URL", default=url).rstrip("/"),
+                Secret(reader.text(f"NBU_{key.upper()}_TOKEN", default="")),
+            )
+            for key, url in NBU_DEFAULT_URLS.items()
+        ),
+        nbu_timeout_s=reader.integer("ATLAS_NBU_TIMEOUT_S", default=20, minimum=1, maximum=300),
+        nbu_min_interval_ms=reader.integer(
+            "ATLAS_NBU_MIN_INTERVAL_MS", default=200, minimum=0, maximum=10_000
+        ),
+        nbu_max_retries=reader.integer("ATLAS_NBU_MAX_RETRIES", default=3, minimum=1, maximum=10),
+        capacity_json_dir=reader.optional_path("ATLAS_CAPACITY_JSON_DIR"),
+        cache_dir=reader.path("ATLAS_CACHE_DIR", default="cache"),
     )
     if settings.db_pool_min > settings.db_pool_max:
         reader.errors.append("ATLAS_DB_POOL_MIN tidak boleh lebih besar dari ATLAS_DB_POOL_MAX")
@@ -226,6 +264,13 @@ class _Reader:
             return False
         self.errors.append(f"{key} harus 0 atau 1 (sekarang: {raw!r})")
         return default
+
+    def optional_path(self, key: str) -> Path | None:
+        raw = self._raw(key)
+        if raw is None:
+            return None
+        path = Path(raw)
+        return path if path.is_absolute() else REPO_ROOT / path
 
     def path(self, key: str, *, default: str) -> Path:
         path = Path(self.text(key, default=default))

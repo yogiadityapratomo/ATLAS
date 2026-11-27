@@ -17,7 +17,7 @@ from atlas.core.config import Settings, load_settings
 from atlas.core.migrations import discover, migrate
 
 TEST_DB = "atlas_test"
-SCHEMAS = ("report", "cmdb", "audit", "core")
+SCHEMAS = ("report", "capacity", "cmdb", "audit", "core")
 
 
 def _base_settings() -> Settings | None:
@@ -85,5 +85,8 @@ def migrated_db(itest_base) -> Settings:
 def clean_db(migrated_db) -> Iterator[Settings]:
     """DB termigrasi dengan tabel data kosong (dijalankan sebelum tiap test)."""
     with connect("migrator") as conn:
-        conn.execute("TRUNCATE cmdb.server_inventory, audit.event, core.collect_run RESTART IDENTITY CASCADE")
+        conn.execute(
+            "TRUNCATE capacity.disk_pool_snapshot, capacity.tape_library_snapshot, cmdb.server_inventory,"
+            " audit.event, core.collect_run RESTART IDENTITY CASCADE"
+        )
     yield migrated_db
