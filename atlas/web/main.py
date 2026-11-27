@@ -29,11 +29,12 @@ from atlas.core.errors import AtlasError, DatabaseError, NotFoundError, Validati
 from atlas.core.logging import announce_startup, log_event, new_request_id, request_context, setup_logging
 from atlas.web.cache import ChangeListener
 from atlas.web.deps import AppState
-from atlas.web.routes import capacity, health, inventory
+from atlas.web.routes import audit, capacity, health, inventory
 
 logger = logging.getLogger("atlas.web")
 FRONTEND_DIR = REPO_ROOT / "frontend"
 STATUS_BY_ERROR = {DatabaseError: 503, ValidationError: 400, NotFoundError: 404}
+QUIET_PATHS = ("/api/audit/", "/api/health")
 
 
 def asset_version() -> str:
@@ -84,12 +85,20 @@ def create_app(
             response = await call_next(request)
             if request.url.path.startswith("/api/"):
                 elapsed = int((time.monotonic() - started) * 1000)
+                if response.status_code >= 500:
+                    severity = "warning"
+                elif request.method == "GET" and request.url.path.startswith(QUIET_PATHS):
+                    severity = (
+                        "debug"  # polling rutin (auto-refresh Audit Log, health) tidak membanjiri audit
+                    )
+                else:
+                    severity = "info"
                 log_event(
                     logger,
                     "web",
                     "http_request",
                     f"{request.method} {request.url.path} → {response.status_code} ({elapsed} ms)",
-                    severity="warning" if response.status_code >= 500 else "info",
+                    severity=severity,
                     actor=request.client.host if request.client else None,
                     duration_ms=elapsed,
                     method=request.method,
@@ -136,6 +145,7 @@ def create_app(
     app.include_router(capacity.router)
     app.include_router(health.router)
     app.include_router(inventory.router)
+    app.include_router(audit.router)
 
     index_html = (
         (FRONTEND_DIR / "index.html")

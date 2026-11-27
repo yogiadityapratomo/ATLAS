@@ -21,6 +21,9 @@
         <button class="side-btn" data-view="inventory" title="Backup Inventory">
           <span class="side-icon">🔎</span>
         </button>
+        <button class="side-btn" data-view="audit" title="Audit Log">
+          <span class="side-icon">📜</span>
+        </button>
       </nav>
       <div class="sidebar-spacer"></div>
     </aside>
@@ -184,6 +187,46 @@
         </div>
       </section>
 
+      <section id="view-audit" class="view">
+        <div class="stat-grid" id="aud-stats"></div>
+        <div class="card">
+          <div class="card-head aud-head">
+            <h3>Event</h3>
+            <span class="muted" id="aud-count"></span>
+          </div>
+          <div class="card-body">
+            <div class="aud-filters">
+              <select id="aud-range">
+                <option value="1h">1 jam</option><option value="24h" selected>24 jam</option>
+                <option value="7d">7 hari</option><option value="30d">30 hari</option>
+              </select>
+              <select id="aud-category">
+                <option value="">Semua kategori</option><option>web</option><option>app</option><option>db</option>
+                <option>job</option><option>security</option><option>system</option><option>bot</option>
+              </select>
+              <select id="aud-severity">
+                <option value="">Semua level</option><option value="info">≥ info</option>
+                <option value="warning">≥ warning</option><option value="error">≥ error</option>
+              </select>
+              <select id="aud-component"><option value="">Semua komponen</option></select>
+              <input type="text" id="aud-q" placeholder="Cari teks pesan...">
+              <input type="text" id="aud-id" placeholder="Request ID / ERR-XXXXXX">
+              <button id="aud-apply" class="btn-primary">Terapkan</button>
+              <button id="aud-csv" class="btn-secondary">⬇️ CSV</button>
+            </div>
+            <div id="aud-table"></div>
+            <div class="aud-footer"><button id="aud-more" class="btn-secondary" style="display:none">Muat lebih</button>
+              <span class="muted">Auto-refresh 30 detik · klik baris untuk detail</span></div>
+          </div>
+        </div>
+        <div id="aud-detail" class="aud-detail">
+          <div class="aud-detail-panel">
+            <div class="aud-detail-head"><h3>Detail Event</h3><button id="aud-detail-close" class="icon-btn">✕</button></div>
+            <div id="aud-detail-body"></div>
+          </div>
+        </div>
+      </section>
+
       <footer class="app-footer">ATLAS &middot; NetBackup Capacity, Backup Inventory &amp; Audit</footer>
     </div>
   </div>
@@ -194,5 +237,6 @@
   <script src="/static/js/main.js?v={{ASSET_VERSION}}"></script>
   <script src="/static/js/capacity.js?v={{ASSET_VERSION}}"></script>
   <script src="/static/js/inventory.js?v={{ASSET_VERSION}}"></script>
+  <script src="/static/js/audit.js?v={{ASSET_VERSION}}"></script>
 </body>
 </html>
