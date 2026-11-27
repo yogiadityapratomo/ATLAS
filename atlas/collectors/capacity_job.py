@@ -179,10 +179,30 @@ def import_json(db: Database, json_dir: Path) -> list[JobOutcome]:
         def mtime(path: Path = path) -> datetime:
             return datetime.fromtimestamp(path.stat().st_mtime, TZ)
 
+        if path.is_file() and _already_imported(db, source, mtime()):
+            # collector V4 belum menulis file baru (mis. sedang gagal): jangan simpan snapshot duplikat
+            log_event(
+                logger,
+                "job",
+                "job_skipped_unchanged",
+                f"Impor {source} dilewati: {name} belum berubah sejak impor terakhir",
+                actor=source,
+                file=name,
+                collected_at=mtime().isoformat(),
+            )
+            outcomes.append(JobOutcome("skipped", None, ""))
+            continue
         outcomes.append(
             _source_job(db, source, fetch, collected_at=mtime, details={"mode": "json_import", "file": name})
         )
     return outcomes
+
+
+def _already_imported(db: Database, source: str, collected_at: datetime) -> bool:
+    with db.connection() as conn:
+        latest = capacity_repo.latest_runs(conn).get(source)
+        conn.rollback()
+    return bool(latest and latest.collected_at and latest.collected_at == collected_at)
 
 
 # ---------------------------------------------------------------- file V4 (transisi / rollback)
@@ -247,7 +267,7 @@ def main(argv: list[str] | None = None) -> int:
                 f"{outcome.result.total} baris{extra}"
             )
         elif outcome.status == "skipped":
-            print(f"{source}: dilewati (run lain masih berjalan)")
+            print(f"{source}: dilewati (run lain masih berjalan, atau file V4 belum berubah)")
         else:
             print(f"{source}: GAGAL [{outcome.error_id}] run {outcome.run_id}")
     return max(o.exit_code for o in outcomes)

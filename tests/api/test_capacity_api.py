@@ -52,13 +52,21 @@ def test_regression_api_data_identical_to_v4_json(app_db, client):
     assert body["collect_status"]["capacity"]["data_status"] == "success"
 
 
-def test_etag_304_and_new_version_after_collect(app_db, client):
-    capacity_job.import_json(app_db, LEGACY_CACHE)
+def test_etag_304_and_new_version_after_collect(app_db, client, tmp_path):
+    import os
+    import shutil
+    import time
+
+    for name in ("capacity_cache.json", "tape_cache.json"):
+        shutil.copy(LEGACY_CACHE / name, tmp_path / name)
+    capacity_job.import_json(app_db, tmp_path)
     first = client.get("/api/data")
     etag = first.headers["etag"]
     assert first.headers["cache-control"] == "no-cache"
     assert client.get("/api/data", headers={"If-None-Match": etag}).status_code == 304
-    capacity_job.import_json(app_db, LEGACY_CACHE)  # collect baru → versi baru
+    later = time.time() + 600
+    os.utime(tmp_path / "capacity_cache.json", (later, later))  # collector V4 menulis file baru
+    capacity_job.import_json(app_db, tmp_path)  # collect baru → versi baru
     client.app.state.atlas.invalidate()  # yang biasanya dipicu NOTIFY
     again = client.get("/api/data", headers={"If-None-Match": etag})
     assert again.status_code == 200
@@ -218,3 +226,24 @@ def test_notify_from_job_refreshes_web_immediately(app_db, itest_settings):
             time.sleep(0.1)
             rows = c.get("/api/data").json()["disk_pools"]
         assert len(rows) == len(_legacy("capacity_cache.json"))
+
+
+def test_import_json_skips_unchanged_v4_file(app_db, tmp_path, events):
+    import os
+    import shutil
+    import time
+
+    for name in ("capacity_cache.json", "tape_cache.json"):
+        shutil.copy(LEGACY_CACHE / name, tmp_path / name)
+    first = capacity_job.import_json(app_db, tmp_path)
+    assert [o.status for o in first] == ["success", "success"]
+    again = capacity_job.import_json(app_db, tmp_path)  # collector V4 belum menulis file baru
+    assert [o.status for o in again] == ["skipped", "skipped"]
+    assert [e["event_type"] for e in events()].count("job_skipped_unchanged") == 2
+    later = time.time() + 600
+    os.utime(tmp_path / "capacity_cache.json", (later, later))  # V4 menulis disk pool baru
+    third = capacity_job.import_json(app_db, tmp_path)
+    assert [o.status for o in third] == ["success", "skipped"]
+    with connect("readonly") as conn:
+        runs = conn.execute("SELECT count(*) FROM core.collect_run WHERE source = 'capacity'").fetchone()[0]
+    assert runs == 2

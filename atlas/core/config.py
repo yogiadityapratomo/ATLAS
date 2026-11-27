@@ -147,7 +147,9 @@ def load_settings(env_file: Path | None = None, environ: Mapping[str, str] | Non
     """
     values: dict[str, str] = {}
     if environ is None:
-        path = env_file or REPO_ROOT / ".env"
+        # server: ATLAS_ENV_FILE=C:\SBM\ATLAS\shared\.env — di luar folder rilis,
+        # sehingga rollback cukup mengganti junction `current`
+        path = env_file or Path(os.environ.get("ATLAS_ENV_FILE") or REPO_ROOT / ".env")
         if path.is_file():
             values.update({k: v for k, v in dotenv_values(path).items() if v is not None})
         values.update(os.environ)

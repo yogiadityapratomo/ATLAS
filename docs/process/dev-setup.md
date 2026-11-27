@@ -134,6 +134,19 @@ Remove-Item Env:PGPASSWORD
   `python -m atlas.collectors.capacity_job` dijadwalkan Task Scheduler tiap 10 menit (menggantikan `scheduled_collect.py`).
   Selama transisi, `ATLAS_CAPACITY_JSON_DIR` membuat job juga menulis JSON & Excel format V4 untuk rollback.
 
+## Paket rilis & self-check
+
+```powershell
+# paket dari tag (setelah merge + tag): zip + requirements.lock + wheelhouse offline + SHA256SUMS → dist\
+.venv\Scripts\python.exe scripts\release\build_release.py --tag vX.Y.Z
+python scripts\release\verify_release.py dist\atlas-vX.Y.Z      # di server, sebelum dipasang
+
+# gerbang sebelum switch rilis (read-only)
+.venv\Scripts\python.exe -m atlas.selfcheck
+```
+
+Langkah staging lengkap: [docs/08-cr-staging.md](../08-cr-staging.md).
+
 ## Belum disiapkan
 
 - Bot Telegram uji + mock NBU untuk menjalankan semua komponen sekaligus.
