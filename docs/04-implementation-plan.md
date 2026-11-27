@@ -178,7 +178,7 @@ Setiap task = satu atau beberapa commit kecil; setiap branch = satu PR dengan bu
 | **PR-5** `feat/audit-log-menu` | | | | |
 | 5.1 | API `/api/audit/events`, `/summary`, `/export` (keyset pagination) | `web/routes/audit.py`, `repositories/audit.py` | API test filter & pagination; 100 ribu event < 1 dtk | Revert |
 | 5.2 | Menu Audit Log (UI) + panel detail per `request_id` | `frontend/js/audit.js` | Uji manual; acceptance criteria design 05 §6 | Revert |
-| 5.3 | Retensi partisi (kapasitas 90 hari, audit 180 hari), runbook | `collectors/maintenance_job.py`, `docs/` | Test drop partisi di DB test | Revert |
+| 5.3 | Retensi partisi (audit 180 hari; kapasitas dapat diatur, default simpan semua — ringkasan harian menyusul), runbook | `collectors/maintenance_job.py`, `docs/06-runbook-atlas.md` | Test drop partisi di DB test | Revert |
 
 Urutan: aplikasi baru lebih dulu mereproduksi menu yang sudah ada (PR-3) sebelum menambah fitur baru (PR-4, PR-5), sehingga dashboard tidak pernah dalam kondisi setengah jadi. Design audit: [05-design-audit-log.md](05-design-audit-log.md).
 

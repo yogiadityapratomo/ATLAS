@@ -94,6 +94,8 @@ class Settings:
     capacity_json_dir: Path | None = None
     cache_dir: Path = REPO_ROOT / "cache"
     policy_cache_path: Path | None = None
+    audit_retention_days: int = 180
+    capacity_retention_days: int = 0
 
     def db_credentials(self, role: DbRole) -> DbCredentials:
         return {
@@ -203,7 +205,19 @@ def load_settings(env_file: Path | None = None, environ: Mapping[str, str] | Non
         capacity_json_dir=reader.optional_path("ATLAS_CAPACITY_JSON_DIR"),
         cache_dir=reader.path("ATLAS_CACHE_DIR", default="cache"),
         policy_cache_path=reader.optional_path("ATLAS_POLICY_CACHE"),
+        audit_retention_days=reader.integer(
+            "ATLAS_AUDIT_RETENTION_DAYS", default=180, minimum=0, maximum=3650
+        ),
+        capacity_retention_days=reader.integer(
+            "ATLAS_CAPACITY_RETENTION_DAYS", default=0, minimum=0, maximum=36500
+        ),
     )
+    for key, days in (
+        ("ATLAS_AUDIT_RETENTION_DAYS", settings.audit_retention_days),
+        ("ATLAS_CAPACITY_RETENTION_DAYS", settings.capacity_retention_days),
+    ):
+        if 0 < days < 28:
+            reader.errors.append(f"{key} minimal 28 hari (atau 0 = tanpa retensi)")
     if settings.db_pool_min > settings.db_pool_max:
         reader.errors.append("ATLAS_DB_POOL_MIN tidak boleh lebih besar dari ATLAS_DB_POOL_MAX")
     if settings.env == "prod" and not (settings.db_web.password and settings.db_app.password):

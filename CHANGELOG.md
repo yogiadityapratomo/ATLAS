@@ -33,7 +33,13 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id/1.1.0/); versi
 - API `/api/backup-inventory/search|apps|filters|export` dan menu **🔎 Backup Inventory**: cari per hostname (sebagian, sama dengan bot) atau per aplikasi CMDB (termasuk host tanpa backup), export Excel format report bot.
 - Cache busting aset frontend (`?v=<hash>`), judul halaman mengikuti menu.
 
+- **Audit Log (PR-5):** API `/api/audit/events` (filter, keyset pagination), `/summary`, `/export` (CSV) dan menu **📜 Audit Log** (tile ringkasan yang bisa diklik, filter, panel detail per `request_id`, auto-refresh 30 detik).
+- `V004__audit_maintenance.sql`: `core.drop_old_partitions` (SECURITY DEFINER, daftar izin, minimal 28 hari) dan source `maintenance`.
+- `atlas.collectors.maintenance_job`: partisi 3 bulan ke depan + retensi audit (`ATLAS_AUDIT_RETENTION_DAYS`, default 180).
+- Runbook operasional: [docs/06-runbook-atlas.md](docs/06-runbook-atlas.md).
+
 ### Changed
+- Polling rutin `GET /api/audit/*` dan `/api/health` dicatat di level `debug` agar tidak membanjiri audit.
 - Pencarian hostname: policy dengan `storage = null` (26 policy aktif, mayoritas Deployment) kini ikut tampil; di bot policy ini hilang karena error.
 - Pencarian hostname: kata kunci sebagian yang menemukan host (mis. `app1` → `app10`) tidak lagi ikut dilaporkan "Not Available" (bug bot).
 - `POST /api/generate` selalu 403: web tidak lagi memicu fetch live ke master NBU (pengambilan data hanya oleh job terjadwal).
