@@ -25,3 +25,6 @@ build/
 dist/
 .pytest_cache/
 .ruff_cache/
+
+# Frontend build tooling (npm, hanya dev)
+node_modules/

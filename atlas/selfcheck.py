@@ -29,7 +29,9 @@ from atlas.core.migrations import discover
 TZ = ZoneInfo("Asia/Jakarta")
 FRONTEND_FILES = (
     "index.html",
-    "css/style.css",
+    "css/app.css",  # hasil build Tailwind (npm run build:css), di-commit
+    "vendor/fonts/ibm-plex-sans-latin-400-normal.woff2",
+    "vendor/fonts/ibm-plex-sans-condensed-latin-600-normal.woff2",
     "js/common.js",
     "js/main.js",
     "js/capacity.js",

@@ -7,6 +7,8 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id/1.1.0/); versi
 ## [Unreleased]
 
 ### Added
+- **Redesign tampilan web dengan Tailwind CSS v4** (build-time, hasil `frontend/css/app.css` di-commit): sidebar baru (grup menu, indikator bergeser, bisa diciutkan), hero gauge kapasitas, donut per site/tape library, tab detail BRN/BSD/TBS, ikon SVG pengganti emoji, font IBM Plex (di-vendor), animasi halus yang menghormati *reduce motion*. Capture tetap menghasilkan 3 gambar. Lihat [frontend/README.md](frontend/README.md).
+- CI job `frontend-css`: memastikan CSS hasil build sama dengan sumbernya.
 - CI GitHub Actions: ruff + test unit + test integrasi/API di PostgreSQL 18 untuk setiap PR dan push ke `main`.
 - `python -m atlas.selfcheck`: gerbang read-only sebelum switch rilis (config, koneksi DB per role, versi schema & checksum, partisi, file sumber, aset web; opsional `--nbu-ping`).
 - `scripts/release/build_release.py` (paket dari tag: zip, `requirements.lock`, wheelhouse Windows/cp313 untuk instalasi offline, `SHA256SUMS`) dan `scripts/release/verify_release.py`.

@@ -171,7 +171,19 @@ $(function () {
   $("#aud-table").on("click", ".aud-row", function () {
     showAuditDetail(auditState.items[$(this).data("idx")]);
   });
-  $("#aud-detail-close, #aud-detail").on("click", function (e) {
-    if (e.target === this) $("#aud-detail").removeClass("open");
+  $("#aud-detail-close").on("click", closeAuditDetail);
+  $("#aud-detail").on("click", function (e) {
+    if (e.target === this) closeAuditDetail();
+  });
+  $(document).on("keydown", function (e) {
+    if (e.key === "Escape" && $("#aud-detail").hasClass("open")) closeAuditDetail();
   });
 });
+
+/* Tutup panel detail dengan animasi geser keluar (lihat .aud-detail.closing di app.css). */
+function closeAuditDetail() {
+  const $d = $("#aud-detail");
+  if (!$d.hasClass("open") || $d.hasClass("closing")) return;
+  $d.addClass("closing");
+  setTimeout(() => $d.removeClass("open closing"), 230);
+}

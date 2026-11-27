@@ -1,0 +1,18 @@
+{
+  "name": "atlas-frontend-build",
+  "private": true,
+  "description": "Build-time tooling untuk frontend ATLAS (Tailwind CSS). Tidak dipakai di server: hasil build (frontend/css/app.css) di-commit.",
+  "scripts": {
+    "build:css": "tailwindcss -i frontend/src/app.css -o frontend/css/app.css --minify",
+    "watch:css": "tailwindcss -i frontend/src/app.css -o frontend/css/app.css --watch",
+    "fonts": "node scripts/ui/copy_fonts.mjs",
+    "shots": "node scripts/ui/screenshots.mjs"
+  },
+  "devDependencies": {
+    "@fontsource/ibm-plex-sans": "5.3.0",
+    "@fontsource/ibm-plex-sans-condensed": "5.3.0",
+    "@tailwindcss/cli": "4.3.5",
+    "playwright-core": "1.65.1",
+    "tailwindcss": "4.3.5"
+  }
+}
