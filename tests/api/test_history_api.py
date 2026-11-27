@@ -90,25 +90,89 @@ def test_period_value_is_end_of_period_and_group_sum(client):
     assert body["has_demo"] is False
 
 
-def test_appliance_grouping_filters_and_demo_flag(client):
+def test_appliance_merges_pools_filters_and_demo_flag(client):
     _daily(
         [
-            (TODAY - timedelta(days=40), "BRN", "BRN", "p1", 10, 100, 10, "demo"),
-            (TODAY, "BRN", "BRN", "p1", 20, 100, 20, "collect"),
-            (TODAY, "BSD", "BSD", "p9", 70, 100, 70, "collect"),
+            (TODAY - timedelta(days=40), "BRN", "BRN", "dp_disk_brnnbupapp07", 10, 100, 10, "demo"),
+            (TODAY, "BRN", "BRN", "dp_disk_brnnbupapp07", 20, 100, 20, "collect"),
+            (TODAY, "BRN", "BRN", "dp_disk_brnnbupapp7-worm", 30, 50, 60, "collect"),
+            (TODAY, "BSD", "BSD", "stu_disk_bsdnbupapp9", 70, 100, 70, "collect"),
         ]
     )
     options = client.get("/api/capacity/history/options").json()
-    assert [a["key"] for a in options["appliances"]] == ["BRN/p1", "BSD/p9"]
+    apps = {a["key"]: a for a in options["appliances"]}
+    assert list(apps) == ["brnnbupapp7", "bsdnbupapp9"]  # 2 pool brnnbupapp07 + 7-worm jadi 1 appliance
+    assert apps["brnnbupapp7"]["pools"] == ["dp_disk_brnnbupapp07", "dp_disk_brnnbupapp7-worm"]
     assert options["has_demo"] is True
     body = client.get(
-        "/api/capacity/history", params={"period": "week", "group": "appliance", "appliances": "BRN/p1"}
+        "/api/capacity/history", params={"period": "month", "group": "appliance", "appliances": "brnnbupapp7"}
     ).json()
-    assert [s["label"] for s in body["series"]] == ["p1"]
+    assert [s["label"] for s in body["series"]] == ["brnnbupapp7"]
+    now = body["series"][0]["points"][TODAY.replace(day=1).isoformat()]
+    assert (now["used_tb"], now["usable_tb"], now["pools"], now["appliances"]) == (50.0, 150.0, 2, 1)
     assert body["has_demo"] is True
-    assert all(b["label"].startswith("Mg ") for b in body["buckets"])
     bad = client.get("/api/capacity/history", params={"period": "decade"})
     assert bad.status_code == 400 and bad.json()["error_id"].startswith("ERR-")
+
+
+def test_select_all_returns_every_appliance(client):
+    _daily(
+        [(TODAY, "TBS", "TBS", f"dp_disk_tbsnbupapp{i}", 10 + i, 100, 10, "collect") for i in range(1, 13)]
+    )
+    keys = ",".join(a["key"] for a in client.get("/api/capacity/history/options").json()["appliances"])
+    body = client.get("/api/capacity/history", params={"group": "appliance", "appliances": keys}).json()
+    assert len(body["series"]) == 12  # tidak dibatasi 8 (grafik yang membatasi garis, bukan data)
+
+
+def test_compare_period_and_range(client):
+    week_start = TODAY - timedelta(days=TODAY.weekday())
+    last_week = week_start - timedelta(days=3)
+    _daily(
+        [
+            (last_week, "BRN", "BRN", "dp_disk_brnnbupapp4", 80, 100, 80, "collect"),
+            (last_week, "TBS", "TBS", "dp_disk_tbsnbupapp6", 50, 100, 50, "collect"),
+            (TODAY, "BRN", "BRN", "dp_disk_brnnbupapp4", 90, 120, 90, "collect"),
+            (TODAY, "TBS", "TBS", "dp_disk_tbsnbupapp6", 40, 100, 40, "collect"),
+        ]
+    )
+    body = client.get(
+        "/api/capacity/history/compare", params={"mode": "period", "compare_period": "week"}
+    ).json()
+    assert body["base"]["label"].startswith("Minggu lalu") and body["current"]["label"].startswith(
+        "Minggu ini"
+    )
+    rows = {r["key"]: r for r in body["rows"]}
+    assert (rows["BRN"]["used_delta_tb"], rows["BRN"]["used_change_pct"], rows["BRN"]["usable_delta_tb"]) == (
+        10,
+        12.5,
+        20,
+    )
+    assert (rows["TBS"]["used_change_pct"], rows["TBS"]["usage_delta_pp"], rows["TBS"]["trend"]) == (
+        -20.0,
+        -10.0,
+        "turun",
+    )
+    total = body["total"]
+    assert (total["base"]["used_tb"], total["current"]["used_tb"], total["used_change_pct"]) == (
+        130,
+        130,
+        0.0,
+    )
+    assert body["counts"]["naik"] == 1 and body["counts"]["turun"] == 1
+
+    rng = client.get(
+        "/api/capacity/history/compare",
+        params={
+            "mode": "range",
+            "a": last_week.isoformat(),
+            "b": TODAY.isoformat(),
+            "group": "appliance",
+            "appliances": "brnnbupapp4",
+        },
+    ).json()
+    assert [r["key"] for r in rng["rows"]] == ["brnnbupapp4"]
+    assert rng["rows"][0]["used_change_pct"] == 12.5
+    assert client.get("/api/capacity/history/compare", params={"mode": "range"}).status_code == 400
 
 
 def test_semester_and_year_buckets(client):

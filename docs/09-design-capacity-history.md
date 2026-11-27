@@ -20,6 +20,14 @@
 
 **Nilai satu periode** = posisi **akhir periode** tiap appliance (hari terakhir yang ada datanya), dijumlahkan per grup; usage % grup = Σ used / Σ usable. **Puncak** usage dalam periode ikut disimpan agar lonjakan sementara tidak hilang. Ini konsisten dengan dashboard: titik terakhir grafik = angka Disk Pool hari ini.
 
+### Tambahan 2026-11-27 (permintaan owner)
+
+| Fitur | Perilaku |
+|---|---|
+| **Ringkasan perbandingan** | Hari ini vs kemarin; minggu/bulan/kuartal/semester/tahun ini vs sebelumnya; atau tanggal A vs B (nilai = hari terakhir yang ada datanya, toleransi 31 hari). Per grup & total: used awal→akhir, Δ TB, Δ %, Δ poin usage, perubahan usable (expansion), jumlah naik/turun |
+| **Appliance digabung** | Disk pool satu host appliance jadi satu baris: buang `dp_disk_`/`stu_disk_`, `-worm`, nol di depan angka (V008 `capacity.appliance_name`, kolom generated `appliance`). 35 disk pool → 24 appliance |
+| **Pilih semua** | Tombol pilih semua / per master / kosongkan. Lebih dari 8 terpilih → grafik menampilkan 8 dengan nilai tertinggi (aturan keterbacaan), tabel & ringkasan memuat semua |
+
 ## 2. Data
 
 | Objek | Isi |

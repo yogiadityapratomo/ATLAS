@@ -273,7 +273,6 @@ table.modern-table th.num { text-align: right; }
 .hist-app-master { font-size: .72rem; font-weight: 700; color: #6a3093; letter-spacing: .04em; margin: 10px 0 4px; }
 .hist-app { display: flex; gap: 6px; align-items: center; font-size: .8rem; padding: 3px 0; cursor: pointer; }
 .hist-app.disabled { opacity: .45; cursor: not-allowed; }
-.hist-app-clear { margin-top: 10px; width: 100%; }
 .hist-chart-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
 .hist-chart-head h3 .muted { font-weight: 400; font-size: .8rem; margin-left: 6px; }
 .hist-demo { background: #fff3cd; color: #8a6100; border: 1px solid #f6d9a8; border-radius: 999px; padding: 4px 10px; font-size: .75rem; font-weight: 600; }
@@ -294,3 +293,23 @@ table.modern-table th.num { text-align: right; }
 .hist-table table.modern-table tbody td, .hist-table thead th { white-space: nowrap; }
 .hist-note { font-size: .74rem; margin-top: 8px; }
 @media (max-width: 1100px) { .hist-layout { grid-template-columns: 1fr; } .hist-app-panel { position: static; } }
+.hist-app-actions { display: flex; gap: 8px; margin-bottom: 8px; }
+.hist-app-actions button { flex: 1; padding: 7px 10px; }
+.hist-app-master { display: flex; justify-content: space-between; align-items: center; }
+.hist-link { border: 0; background: none; color: #b91d73; font: inherit; font-size: .72rem; cursor: pointer; padding: 0; }
+.hist-link:hover { text-decoration: underline; }
+.hist-app-pools { font-size: .68rem; background: #f1eef6; color: #6a3093; border-radius: 6px; padding: 1px 6px; }
+.hist-dot-off { background: transparent; border: 1px solid #ccc; }
+.cmp-controls { display: flex; gap: 8px; align-items: center; font-size: .82rem; }
+.cmp-controls select, .cmp-controls input { border: 1px solid #e3dfeb; border-radius: 10px; padding: 7px 9px; font: inherit; font-size: .82rem; background: #fff; }
+.cmp-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 14px; }
+.cmp-tile { border: 1px solid #eee9f3; border-radius: 14px; padding: 12px 14px; background: #fcfbfe; }
+.cmp-tile-head { font-size: .76rem; color: #666; font-weight: 600; }
+.cmp-tile-value { font-size: 1.35rem; font-weight: 800; margin: 4px 0 2px; }
+.cmp-tile-sub { font-size: .74rem; color: #777; }
+.delta-up { color: #c0392b; }
+.delta-down { color: #0a8a5f; }
+.delta-flat { color: #3f1d5c; }
+.cmp-exp { color: #257de0; font-size: .78rem; }
+.cmp-table { max-height: 45vh; overflow: auto; }
+.cmp-table table.modern-table tbody td { white-space: nowrap; }
