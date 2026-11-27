@@ -29,7 +29,7 @@ from atlas.core.errors import AtlasError, DatabaseError, NotFoundError, Validati
 from atlas.core.logging import announce_startup, log_event, new_request_id, request_context, setup_logging
 from atlas.web.cache import ChangeListener
 from atlas.web.deps import AppState
-from atlas.web.routes import audit, capacity, health, inventory
+from atlas.web.routes import audit, capacity, health, history, inventory
 
 logger = logging.getLogger("atlas.web")
 FRONTEND_DIR = REPO_ROOT / "frontend"
@@ -146,6 +146,7 @@ def create_app(
     app.include_router(health.router)
     app.include_router(inventory.router)
     app.include_router(audit.router)
+    app.include_router(history.router)
 
     index_html = (
         (FRONTEND_DIR / "index.html")

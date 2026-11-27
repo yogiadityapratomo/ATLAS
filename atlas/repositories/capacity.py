@@ -9,6 +9,7 @@ from datetime import datetime
 from typing import Any
 
 import psycopg
+from psycopg.rows import dict_row
 
 SOURCES = ("capacity", "tape")
 # kolom snapshot (urutan = urutan kunci JSON V4 di services.capacity.DISK_KEYS / TAPE_KEYS)
@@ -137,3 +138,132 @@ def tape_rows(conn: psycopg.Connection, run_id: int) -> list[tuple]:
         _TAPE_SELECT + " WHERE run_id = %s ORDER BY id",
         (run_id,),
     ).fetchall()
+
+
+# ---------------------------------------------------------------- riwayat (Historical Capacity)
+
+# ekspresi awal periode — dipilih dari daftar tetap (bukan input user)
+BUCKET_SQL = {
+    "day": "d.day",
+    "week": "date_trunc('week', d.day)::date",
+    "month": "date_trunc('month', d.day)::date",
+    "quarter": "date_trunc('quarter', d.day)::date",
+    "semester": (
+        "make_date(extract(year FROM d.day)::int,"
+        " CASE WHEN extract(month FROM d.day) <= 6 THEN 1 ELSE 7 END, 1)"
+    ),
+    "year": "date_trunc('year', d.day)::date",
+}
+GROUP_SQL = {"site": "b.site", "master": "b.master", "appliance": "b.appliance"}
+
+
+def rollup_daily(conn: psycopg.Connection, start, end) -> int:
+    return int(conn.execute("SELECT capacity.rollup_disk_pool_daily(%s, %s)", (start, end)).fetchone()[0])
+
+
+def _filters(req) -> tuple[list[str], dict[str, Any]]:
+    where: list[str] = []
+    params: dict[str, Any] = {}
+    if req.sites:
+        where.append("d.site = ANY(%(sites)s)")
+        params["sites"] = list(req.sites)
+    if req.masters:
+        where.append("d.master = ANY(%(masters)s)")
+        params["masters"] = list(req.masters)
+    if req.appliances:
+        where.append("d.appliance = ANY(%(appliances)s)")
+        params["appliances"] = list(req.appliances)
+    return where, params
+
+
+def history(conn: psycopg.Connection, req) -> list[dict[str, Any]]:
+    """Agregat per (periode, grup): nilai akhir periode tiap disk pool dijumlahkan per grup."""
+    where, params = _filters(req)
+    where.insert(0, "d.day BETWEEN %(start)s AND %(end)s")
+    params.update(start=req.start, end=req.end)
+    bucket = BUCKET_SQL[req.period]
+    sql = f"""
+        WITH b AS (
+            SELECT d.*, {bucket} AS bucket,
+                   row_number() OVER (PARTITION BY d.master, d.disk_pool_name, {bucket}
+                                      ORDER BY d.day DESC) AS rn,
+                   max(d.max_usage_pct) OVER (PARTITION BY d.master, d.disk_pool_name, {bucket}) AS peak_pct
+              FROM capacity.disk_pool_daily d
+             WHERE {" AND ".join(where)}
+        )
+        SELECT b.bucket, {GROUP_SQL[req.group]} AS key,
+               sum(b.used_tb) AS used_tb, sum(b.usable_tb) AS usable_tb, sum(b.available_tb) AS available_tb,
+               max(b.peak_pct) AS peak_pct, count(DISTINCT b.appliance) AS appliances, count(*) AS pools,
+               max(b.day) AS as_of, bool_or(b.source = 'demo') AS demo
+          FROM b
+         WHERE b.rn = 1
+         GROUP BY b.bucket, key
+         ORDER BY b.bucket, key
+    """  # noqa: S608 — bucket & grup dari kamus tetap; nilai lewat parameter
+    with conn.cursor(row_factory=dict_row) as cur:
+        return cur.execute(sql, params).fetchall()
+
+
+def values_at(conn: psycopg.Connection, req, start, end) -> list[dict[str, Any]]:
+    """Posisi per grup pada jendela [start, end]: hari terakhir yang ada datanya tiap disk pool, dijumlah."""
+    where, params = _filters(req)
+    where.insert(0, "d.day BETWEEN %(start)s AND %(end)s")
+    params.update(start=start, end=end)
+    sql = f"""
+        WITH b AS (
+            SELECT d.*, row_number() OVER (PARTITION BY d.master, d.disk_pool_name ORDER BY d.day DESC) AS rn
+              FROM capacity.disk_pool_daily d
+             WHERE {" AND ".join(where)}
+        )
+        SELECT {GROUP_SQL[req.group]} AS key,
+               sum(b.used_tb) AS used_tb, sum(b.usable_tb) AS usable_tb, sum(b.available_tb) AS available_tb,
+               count(DISTINCT b.appliance) AS appliances, count(*) AS pools,
+               min(b.day) AS as_of_min, max(b.day) AS as_of, bool_or(b.source = 'demo') AS demo
+          FROM b
+         WHERE b.rn = 1
+         GROUP BY key
+         ORDER BY key
+    """  # noqa: S608 — grup dari kamus tetap; nilai lewat parameter
+    with conn.cursor(row_factory=dict_row) as cur:
+        return cur.execute(sql, params).fetchall()
+
+
+def history_options(conn: psycopg.Connection) -> dict[str, Any]:
+    """Daftar appliance (disk pool digabung per host appliance) untuk checkbox, terbaru lebih dulu."""
+    with conn.cursor(row_factory=dict_row) as cur:
+        appliances = cur.execute(
+            """
+            WITH latest AS (
+                SELECT DISTINCT ON (master, disk_pool_name) appliance, site, master, disk_pool_name
+                  FROM capacity.disk_pool_daily
+                 ORDER BY master, disk_pool_name, day DESC
+            )
+            SELECT appliance, min(site) AS site, array_agg(DISTINCT master ORDER BY master) AS masters,
+                   array_agg(disk_pool_name ORDER BY disk_pool_name) AS pools
+              FROM latest
+             GROUP BY appliance
+             ORDER BY min(master), appliance
+            """
+        ).fetchall()
+        span = cur.execute(
+            "SELECT min(day) AS first_day, max(day) AS last_day, bool_or(source = 'demo') AS has_demo"
+            " FROM capacity.disk_pool_daily"
+        ).fetchone()
+    return {
+        "appliances": [
+            {
+                "key": a["appliance"],
+                "name": a["appliance"],
+                "master": a["masters"][0],
+                "masters": a["masters"],
+                "site": a["site"],
+                "pools": a["pools"],
+            }
+            for a in appliances
+        ],
+        "sites": sorted({a["site"] for a in appliances}),
+        "masters": sorted({m for a in appliances for m in a["masters"]}),
+        "first_day": span["first_day"],
+        "last_day": span["last_day"],
+        "has_demo": bool(span["has_demo"]),
+    }

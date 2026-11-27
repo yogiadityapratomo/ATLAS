@@ -18,6 +18,9 @@
         <button class="side-btn" data-view="tape" title="Tape Library">
           <span class="side-icon">📼</span>
         </button>
+        <button class="side-btn" data-view="history" title="Historical Capacity">
+          <span class="side-icon">📈</span>
+        </button>
         <button class="side-btn" data-view="inventory" title="Backup Inventory">
           <span class="side-icon">🔎</span>
         </button>
@@ -144,6 +147,71 @@
         </div>
       </section>
 
+      <section id="view-history" class="view">
+        <div class="card hist-controls">
+          <div class="card-body hist-filter-row">
+            <label>Periode <select id="hist-period"></select></label>
+            <div class="hist-seg" data-name="group">
+              <span class="hist-seg-label">Grouping</span>
+              <button data-value="site" class="active">Site</button><button data-value="master">Master</button><button data-value="appliance">Appliance</button>
+            </div>
+            <div class="hist-seg" data-name="metric">
+              <span class="hist-seg-label">Metrik</span>
+              <button data-value="usage_pct" class="active">Usage %</button><button data-value="used_tb">Used TB</button><button data-value="free_tb">Free TB</button>
+            </div>
+            <label>Dari <input type="date" id="hist-from"></label>
+            <label>Sampai <input type="date" id="hist-to"></label>
+            <button id="hist-apply" class="btn-primary">Terapkan</button>
+            <button id="hist-export" class="btn-secondary">⬇️ Excel</button>
+          </div>
+        </div>
+
+        <div class="hist-layout">
+          <div class="card hist-app-panel" id="hist-app-panel">
+            <div class="card-head hist-app-head"><h3>Appliance</h3><span class="muted" id="hist-app-count"></span></div>
+            <div class="card-body">
+              <div class="search-box detail-search"><span class="search-icon">🔍</span><input type="text" id="hist-app-search" placeholder="Cari disk pool / site..."></div>
+              <div class="hist-app-hint muted">Disk pool satu appliance digabung (mis. dp_disk_x07 + dp_disk_x7-worm → x7). Pilihan berlaku untuk ringkasan, grafik, dan tabel; juga sebagai filter untuk grouping Site/Master.</div>
+              <div class="hist-app-actions"><button id="hist-app-all" class="btn-secondary">Pilih semua</button><button id="hist-app-clear" class="btn-secondary">Kosongkan</button></div>
+              <div id="hist-app-list"></div>
+            </div>
+          </div>
+          <div class="hist-main">
+            <div class="card">
+              <div class="card-head hist-chart-head">
+                <h3>Ringkasan Perbandingan <span class="muted" id="cmp-title"></span></h3>
+                <div class="cmp-controls">
+                  <select id="cmp-mode"></select>
+                  <span id="cmp-range" style="display:none"><input type="date" id="cmp-a"> → <input type="date" id="cmp-b"></span>
+                </div>
+              </div>
+              <div class="card-body">
+                <div id="cmp-stats" class="cmp-stats"></div>
+                <div id="cmp-table"></div>
+                <div class="muted hist-note">Nilai = posisi terakhir yang ada datanya di tiap periode/tanggal. ▲ naik · ▼ turun. Δ poin = selisih usage %. Expansion = perubahan kapasitas usable.</div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-head hist-chart-head">
+                <h3>Tren Kapasitas <span class="muted" id="hist-range"></span></h3>
+                <span id="hist-demo" class="hist-demo" style="display:none" title="Riwayat sebelum 26 Nov 2026 dibangkitkan oleh scripts/dev/seed_capacity_history.py">Berisi data contoh (demo)</span>
+              </div>
+              <div class="card-body">
+                <div id="hist-legend" class="hist-legend"></div>
+                <div id="hist-chart-note" class="muted hist-note"></div>
+                <div id="hist-chart" class="hist-chart"></div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-head"><h3>Tabel Data</h3></div>
+              <div class="card-body"><div id="hist-table"></div>
+                <div class="muted hist-note">Nilai periode = posisi akhir periode; "Perkiraan 85%" = tren linear usage % (indikatif).</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section id="view-inventory" class="view">
         <div class="card inv-form">
           <div class="card-head">
@@ -236,6 +304,7 @@
   <script src="/static/js/common.js?v={{ASSET_VERSION}}"></script>
   <script src="/static/js/main.js?v={{ASSET_VERSION}}"></script>
   <script src="/static/js/capacity.js?v={{ASSET_VERSION}}"></script>
+  <script src="/static/js/history.js?v={{ASSET_VERSION}}"></script>
   <script src="/static/js/inventory.js?v={{ASSET_VERSION}}"></script>
   <script src="/static/js/audit.js?v={{ASSET_VERSION}}"></script>
 </body>

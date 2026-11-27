@@ -23,6 +23,7 @@ from atlas.core.db import Database
 from atlas.core.errors import AtlasError
 from atlas.core.logging import announce_startup, setup_logging
 from atlas.repositories import audit as audit_repo
+from atlas.repositories import capacity as capacity_repo
 
 TZ = ZoneInfo("Asia/Jakarta")
 PARTITIONED = ("audit.event", "capacity.disk_pool_snapshot", "capacity.tape_library_snapshot")
@@ -37,6 +38,8 @@ def run_maintenance(db: Database, settings: Settings, *, now: datetime | None = 
             created[table] = conn.execute(
                 "SELECT core.ensure_monthly_partitions(%s::regclass, 1, 3)", (table,)
             ).fetchone()[0]
+        # catch-up ringkasan harian Historical Capacity (mis. bila collect sempat gagal saat pergantian hari)
+        rolled = capacity_repo.rollup_daily(conn, (now - timedelta(days=3)).date(), now.date())
         dropped: list[str] = []
         if settings.audit_retention_days:
             cutoff = now - timedelta(days=settings.audit_retention_days)
@@ -48,7 +51,11 @@ def run_maintenance(db: Database, settings: Settings, *, now: datetime | None = 
         return JobResult(
             total=len(dropped),
             deleted=len(dropped),
-            details={"partitions_created": created, "partitions_dropped": dropped},
+            details={
+                "partitions_created": created,
+                "partitions_dropped": dropped,
+                "daily_rollup_rows": rolled,
+            },
         )
 
     return run_job(db, "maintenance", work)

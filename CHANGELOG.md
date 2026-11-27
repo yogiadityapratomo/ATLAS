@@ -13,6 +13,10 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id/1.1.0/); versi
 - `ATLAS_ENV_FILE`: lokasi `.env` di luar folder rilis (`shared\.env`); `bootstrap.py` menulis password ke file yang sama.
 - `V005__selfcheck_grants.sql`: role aplikasi boleh membaca `core.schema_migrations`.
 - Draf CR staging: [docs/08-cr-staging.md](docs/08-cr-staging.md).
+- **Menu 📈 Historical Capacity**: tren disk pool per hari/minggu/bulan/kuartal/semester/tahun, grouping site/master/appliance (checkbox maks 8), metrik usage %/used/free, garis acuan 70%/85%, perkiraan kapan mencapai 85%, export Excel ([design 09](docs/09-design-capacity-history.md)).
+- `V006__capacity_history.sql`: `capacity.disk_pool_daily` + fungsi rollup; `V007`: rollup juga mencakup run yang sedang berjalan (ditemukan test sebelum merge). Job kapasitas & maintenance mengisi ringkasan harian.
+- Historical Capacity: **ringkasan perbandingan** naik/turun (TB, %, poin usage, expansion) — hari ini vs kemarin, minggu/bulan/kuartal/semester/tahun ini vs sebelumnya, atau tanggal A vs B; **appliance digabung** per host (V008 `capacity.appliance_name`, mis. dp_disk_brnnbupapp07 + dp_disk_brnnbupapp7-worm → brnnbupapp7); **Pilih semua** / per master (grafik 8 tertinggi, tabel & ringkasan semua).
+- `scripts/dev/seed_capacity_history.py`: riwayat contoh 2 tahun (`source='demo'`, `--purge`).
 - Fase 5: `scripts/dev/mock_nbu.py`, `scripts/dev/soak.py`, [quality report](docs/07-quality-report.md).
 
 ### Changed

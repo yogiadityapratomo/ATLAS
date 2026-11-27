@@ -105,3 +105,65 @@ def inventory_workbook(
     buffer = io.BytesIO()
     wb.save(buffer)
     return buffer.getvalue()
+
+
+# ---------------------------------------------------------------- historical capacity
+
+HISTORY_METRICS = (("usage_pct", "Usage (%)"), ("used_tb", "Used (TB)"), ("free_tb", "Free (TB)"))
+
+
+def history_workbook(data: dict[str, Any]) -> bytes:
+    """Satu sheet pivot per metrik (baris = grup, kolom = periode) + sheet detail berformat panjang."""
+    wb = Workbook()
+    wb.remove(wb.active)
+    labels = [b["label"] for b in data["buckets"]]
+    starts = [b["start"] for b in data["buckets"]]
+    note = (
+        f"Historical Capacity — {data['period_label']}, per {data['group']}, {data['from']} s.d. {data['to']}"
+    )
+    if data.get("has_demo"):
+        note += "  (BERISI DATA CONTOH / DEMO)"
+    for key, title in HISTORY_METRICS:
+        ws = wb.create_sheet(title.split(" ")[0])
+        ws.append([note])
+        ws["A1"].font = Font(bold=True)
+        _header(ws, 2, [data["group"].capitalize(), *labels])
+        for series in data["series"]:
+            ws.append([series["label"], *[(series["points"].get(s) or {}).get(key) for s in starts]])
+        ws.freeze_panes = "B3"
+    detail = wb.create_sheet("Detail")
+    cols = [
+        "Periode",
+        "Mulai",
+        data["group"].capitalize(),
+        "Used (TB)",
+        "Usable (TB)",
+        "Free (TB)",
+        "Usage (%)",
+        "Puncak usage (%)",
+        "Jumlah appliance",
+        "Data per",
+    ]
+    _header(detail, 1, cols)
+    for series in data["series"]:
+        for label, start in zip(labels, starts, strict=True):
+            p = series["points"].get(start)
+            if p:
+                detail.append(
+                    [
+                        label,
+                        start,
+                        series["label"],
+                        p["used_tb"],
+                        p["usable_tb"],
+                        p["free_tb"],
+                        p["usage_pct"],
+                        p["peak_pct"],
+                        p["appliances"],
+                        p["as_of"],
+                    ]
+                )
+    detail.freeze_panes = "A2"
+    buffer = io.BytesIO()
+    wb.save(buffer)
+    return buffer.getvalue()

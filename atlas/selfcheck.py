@@ -33,6 +33,7 @@ FRONTEND_FILES = (
     "js/common.js",
     "js/main.js",
     "js/capacity.js",
+    "js/history.js",
     "js/inventory.js",
     "js/audit.js",
 )
