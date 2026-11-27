@@ -134,6 +134,13 @@ Remove-Item Env:PGPASSWORD
   `python -m atlas.collectors.capacity_job` dijadwalkan Task Scheduler tiap 10 menit (menggantikan `scheduled_collect.py`).
   Selama transisi, `ATLAS_CAPACITY_JSON_DIR` membuat job juga menulis JSON & Excel format V4 untuk rollback.
 
+## Historical Capacity — data contoh (DEV)
+
+```powershell
+.venv\Scripts\python.exe scripts\dev\seed_capacity_history.py --days 730   # riwayat contoh 2 tahun (source=demo)
+.venv\Scripts\python.exe scripts\dev\seed_capacity_history.py --purge      # hapus semua data contoh
+```
+
 ## Paket rilis & self-check
 
 ```powershell
