@@ -6,6 +6,15 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id/1.1.0/); versi
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-11-27
+
+Rilis pertama ATLAS (DEV). Belum di-deploy ke staging/production — deploy mengikuti
+[deployment-workflow](docs/process/deployment-workflow.md) dan butuh CR.
+
+Ringkasan: database `atlas` (role least privilege, migrasi V001–V004), audit & event log, web baru dengan
+menu Disk Pool, Tape Library, **Backup Inventory**, dan **Audit Log**; job kapasitas, inventory, CMDB,
+dan maintenance. Disetujui owner lewat PR #1–#6.
+
 ### Added
 - Kerangka paket `atlas/` (core, repositories, services, collectors, web), `frontend/`, `db/migrations/`, `tests/`.
 - `pyproject.toml`: dependency (psycopg 3 + pool), konfigurasi pytest & ruff.
@@ -45,3 +54,6 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id/1.1.0/); versi
 - `POST /api/generate` selalu 403: web tidak lagi memicu fetch live ke master NBU (pengambilan data hanya oleh job terjadwal).
 - Collect yang gagal total tidak lagi mengosongkan dashboard (V4 menimpa JSON dengan daftar kosong); data terakhir tetap tampil dengan peringatan.
 - Web V4 dipindah dari `web/` ke `legacy/web-v4/` sebagai snapshot referensi regresi (tetap bisa dijalankan).
+
+[Unreleased]: https://github.com/yogiadityapratomo/ATLAS/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/yogiadityapratomo/ATLAS/releases/tag/v0.1.0
