@@ -5,7 +5,7 @@
 | Versi | 0.1 (draft) |
 | Tanggal | 2026-11-24 |
 | Baseline proses | `SYSTEM_DESIGN_PRODUCTION_GUIDE_CLAUDE.md` |
-| Fase aktif | **Fase 4 — Development**: PR-0–PR-2 merged (2026-11-26); PR-3 `feat/capacity-db`, PR-4, PR-5 berjalan. Fase 1–3 selesai ([plan](04-implementation-plan.md)) |
+| Fase aktif | **Fase 5 — Quality**: soak test 72 jam berjalan (2026-11-27 s.d. ±2026-11-30). Fase 4 selesai — rilis `v0.1.0` ([quality report](07-quality-report.md)) |
 
 ## 1. Latar belakang
 
@@ -48,10 +48,10 @@ Bot Telegram "NetBackup Assistant" dipakai tim Storage & Backup untuk dua hal: m
 |---|---|---|---|
 | 0 | Quick wins darurat (CR) | Restart aman, collector single instance, rotasi token | Usulan — menunggu keputusan |
 | 1 | Assessment | [01-assessment-report.md](01-assessment-report.md) | **Draft selesai — review** |
-| 2 | Requirement & design | PRD, design doc, kontrak data, logging spec, test strategy | Belum |
-| 3 | Implementation plan | Daftar task, file, test, rollback | Belum |
-| 4 | Development | Collector v3, modul report, bot v3 | Belum |
-| 5 | Quality | Unit/regression test, integrasi dengan mock NBU, soak test 72 jam | Belum |
+| 2 | Requirement & design | [03](03-design-db-dashboard.md), [05](05-design-audit-log.md) | **Selesai** (disetujui 2026-11-26) |
+| 3 | Implementation plan | [04](04-implementation-plan.md) | **Selesai** (disetujui 2026-11-26) |
+| 4 | Development | PR #1–#7, rilis `v0.1.0` (dashboard DB; bot v3 belum) | **Selesai** (2026-11-27) |
+| 5 | Quality | [07-quality-report.md](07-quality-report.md) | **Berjalan** — soak 72 jam |
 | 6 | CI | Pipeline lint + test (jika GitLab + runner tersedia) | Belum |
 | 7 | Staging | Jalan paralel dengan bot uji di server yang sama | Belum |
 | 8 | Production | CR, cutover via NSSM/Task Scheduler, health check, rollback siap | Belum |
@@ -84,6 +84,8 @@ Bot Telegram "NetBackup Assistant" dipakai tim Storage & Backup untuk dua hal: m
 | 2026-11-27 | Web ATLAS tidak memicu fetch live ke NBU (`POST /api/generate` = 403); collect gagal total tidak mengosongkan dashboard | Usulan PR-3 (perlu konfirmasi owner saat review) |
 | 2026-11-27 | Backup Inventory mengikuti logika Search bot, dengan 2 perbaikan bug bot: policy `storage = null` tetap tampil; kata kunci sebagian yang ditemukan tidak dilaporkan "Not Available". Regresi vs bot asli: 2.435/2.435 baris identik | Usulan PR-4 (perlu konfirmasi owner saat review) |
 | 2026-11-27 | Retensi riwayat kapasitas default **simpan semua** (±2 juta baris/tahun); usulan design "90 hari + 1 snapshot/hari" ditunda sampai dibutuhkan. Audit 180 hari | Usulan PR-5 (perlu konfirmasi owner saat review) |
+| 2026-11-27 | PR #4–#6 disetujui ("approve semua, merge") termasuk seluruh perbedaan perilaku; rilis `v0.1.0` (PR #7, tag & GitHub Release) | Owner |
+| 2026-11-27 | Owner: "lanjut aja" → Fase 5 dimulai: mock NBU + soak test 72 jam di DEV | Owner |
 
 ## 7. Pertanyaan terbuka
 
