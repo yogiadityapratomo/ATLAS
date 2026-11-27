@@ -5,7 +5,7 @@
 | Versi | 0.1 (draft) |
 | Tanggal | 2026-11-24 |
 | Baseline proses | `SYSTEM_DESIGN_PRODUCTION_GUIDE_CLAUDE.md` |
-| Fase aktif | **Fase 4 — Development**, PR-2 `feat/db-foundation` (PR-0 & PR-1 menunggu review). Fase 1–3 selesai ([plan](04-implementation-plan.md)) |
+| Fase aktif | **Fase 4 — Development**: PR-0–PR-2 merged (2026-11-26); PR-3 `feat/capacity-db`, PR-4, PR-5 berjalan. Fase 1–3 selesai ([plan](04-implementation-plan.md)) |
 
 ## 1. Latar belakang
 
@@ -79,6 +79,9 @@ Bot Telegram "NetBackup Assistant" dipakai tim Storage & Backup untuk dua hal: m
 | 2026-11-26 | Owner: "jalankan yang paling direkomendasikan" → PR-2 dikerjakan di branch `feat/db-foundation` (bertumpuk di PR-1) selama PR-0/PR-1 menunggu review; merge tetap berurutan | Owner |
 | 2026-11-26 | CMDB disimpan **satu baris per isi unik** + kolom `occurrences` (kunci `row_hash`), karena tidak ada kombinasi kolom yang unik (hostname sama di beberapa site; 282 baris kembar persis). Jumlah baris asli tetap 14.185 | Usulan PR-2 (implementasi design 03 §4.1) |
 | 2026-11-26 | `V001` hanya berisi core/audit/cmdb/report; `capacity.*` (V002) dan `nbu.*` (V003) ikut PR yang memakainya | Usulan PR-2 (penyesuaian plan 04) |
+| 2026-11-26 | PR #1–#3 disetujui owner ("di approve aja semuanya") dan di-merge ke `main` | Owner |
+| 2026-11-27 | Owner: "lanjut … pr semuanya" → PR-3, PR-4, PR-5 dikerjakan berurutan (bertumpuk), merge tetap menunggu approval | Owner |
+| 2026-11-27 | Web ATLAS tidak memicu fetch live ke NBU (`POST /api/generate` = 403); collect gagal total tidak mengosongkan dashboard | Usulan PR-3 (perlu konfirmasi owner saat review) |
 
 ## 7. Pertanyaan terbuka
 

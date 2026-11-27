@@ -69,13 +69,27 @@ class JobContext:
     run_id: int
     request_id: str
     source: str
+    data: Any = None  # hasil langkah prepare (mis. data dari master NBU)
 
 
 Work = Callable[[psycopg.Connection, JobContext], JobResult]
+Prepare = Callable[[JobContext], Any]
 
 
-def run_job(db: Database, source: str, work: Work, *, details: dict[str, Any] | None = None) -> JobOutcome:
-    """Jalankan ``work(conn, ctx)`` di dalam satu transaksi dengan lock & pencatatan run."""
+def run_job(
+    db: Database,
+    source: str,
+    work: Work,
+    *,
+    prepare: Prepare | None = None,
+    details: dict[str, Any] | None = None,
+) -> JobOutcome:
+    """Jalankan ``work(conn, ctx)`` di dalam satu transaksi dengan lock & pencatatan run.
+
+    ``prepare(ctx)`` (opsional) dijalankan **sesudah** lock & baris run dibuat tetapi **di luar**
+    transaksi — untuk pekerjaan lama tanpa DB (mis. mengambil data dari master NBU) agar tidak
+    menahan transaksi terbuka. Hasilnya tersedia sebagai ``ctx.data`` di ``work``.
+    """
     lock_key = f"atlas.job.{source}"
     with request_context() as request_id:
         started = time.monotonic()
@@ -93,7 +107,7 @@ def run_job(db: Database, source: str, work: Work, *, details: dict[str, Any] | 
                     )
                     return JobOutcome("skipped", None, request_id)
                 try:
-                    return _execute(conn, source, work, request_id, started, details or {})
+                    return _execute(conn, source, work, prepare, request_id, started, details or {})
                 finally:
                     if not conn.broken:
                         runs.advisory_unlock(conn, lock_key)
@@ -106,6 +120,7 @@ def _execute(
     conn: psycopg.Connection,
     source: str,
     work: Work,
+    prepare: Prepare | None,
     request_id: str,
     started: float,
     details: dict[str, Any],
@@ -125,6 +140,8 @@ def _execute(
     log_event(logger, "job", "job_started", f"Job {source} mulai (run {run_id})", actor=source, run_id=run_id)
     ctx = JobContext(run_id=run_id, request_id=request_id, source=source)
     try:
+        if prepare is not None:
+            ctx.data = prepare(ctx)
         with conn.transaction():
             result = work(conn, ctx)
     except Exception as exc:

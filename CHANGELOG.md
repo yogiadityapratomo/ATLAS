@@ -21,5 +21,13 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id/1.1.0/); versi
 - `atlas/collectors/runner.py`: kerangka job (advisory lock per source, `collect_run`, satu transaksi data, event `job_started`/`job_finished`/`job_failed`/`job_skipped_locked`/`job_orphaned`).
 - `atlas.collectors.cmdb_import`: import Excel OSPLA berbasis diff (impor ulang tanpa perubahan = 0 baris ditulis), pengaman penyusutan > 50%, `NOTIFY atlas_data_changed`.
 
+- **Kapasitas ke database (PR-3):** `V002__capacity.sql` — riwayat `capacity.disk_pool_snapshot` & `capacity.tape_library_snapshot` (partisi bulanan), view `capacity.latest_run` / `*_latest`.
+- `atlas/collectors/nbu_client.py`: rate limit per master, retry per halaman (429/5xx/timeout, `Retry-After`), deadline kooperatif, lanjutan paginasi tape antar run.
+- `atlas.collectors.capacity_job`: collect live (berurutan per master, status success/partial/failed) dan `--from-json` (impor cache V4); opsi tulis file V4 untuk rollback.
+- Web baru `atlas/web` (FastAPI): `/api/data` & `/api/export` dari DB dengan kontrak JSON V4, cache per versi data + ETag/304 + `LISTEN/NOTIFY`, `/api/health`, audit `http_request` per request, error ber-ID.
+- `frontend/`: tampilan V4 dengan `app.js` dipecah (`common.js`, `main.js`, `capacity.js`), peringatan bila collect terakhir gagal/parsial, favicon.
+
 ### Changed
+- `POST /api/generate` selalu 403: web tidak lagi memicu fetch live ke master NBU (pengambilan data hanya oleh job terjadwal).
+- Collect yang gagal total tidak lagi mengosongkan dashboard (V4 menimpa JSON dengan daftar kosong); data terakhir tetap tampil dengan peringatan.
 - Web V4 dipindah dari `web/` ke `legacy/web-v4/` sebagai snapshot referensi regresi (tetap bisa dijalankan).

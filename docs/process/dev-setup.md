@@ -111,6 +111,23 @@ Remove-Item Env:PGPASSWORD
 - `bootstrap.py` menolak berjalan bila `log_statement` server = `all`/`ddl` (password role bisa masuk log server).
 - Impor CMDB: file yang sama diimpor ulang = 0 baris ditulis; jumlah baris turun > 50% ditolak kecuali `--allow-shrink`.
 
+## Web ATLAS (baru) & job kapasitas
+
+```powershell
+# data kapasitas di DEV: impor cache V4 (live NBU diblok, ATLAS_ALLOW_LIVE_NBU=0)
+.venv\Scripts\python.exe -m atlas.collectors.capacity_job --from-json legacy\web-v4\cache
+
+# web baru (hanya bisa diakses dari laptop ini); web V4 lama tetap bisa jalan di port 8000
+.venv\Scripts\python.exe -m uvicorn atlas.web.main:app --host 127.0.0.1 --port 8001
+# buka http://127.0.0.1:8001  — cek kesehatan: http://127.0.0.1:8001/api/health
+```
+
+- Web hanya membaca DB (role `atlas_web`); tidak pernah menembak master NBU. `POST /api/generate` selalu 403.
+- Data baru dari job langsung tampil: job mengirim `NOTIFY atlas_data_changed`, web membuang cache.
+- Collect live (production, lewat CR): `ATLAS_ALLOW_LIVE_NBU=1` + `NBU_*_TOKEN`, lalu
+  `python -m atlas.collectors.capacity_job` dijadwalkan Task Scheduler tiap 10 menit (menggantikan `scheduled_collect.py`).
+  Selama transisi, `ATLAS_CAPACITY_JSON_DIR` membuat job juga menulis JSON & Excel format V4 untuk rollback.
+
 ## Belum disiapkan
 
 - Bot Telegram uji + mock NBU untuk menjalankan semua komponen sekaligus.
