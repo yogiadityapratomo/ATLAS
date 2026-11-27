@@ -6,6 +6,19 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id/1.1.0/); versi
 
 ## [Unreleased]
 
+### Added
+- CI GitHub Actions: ruff + test unit + test integrasi/API di PostgreSQL 18 untuk setiap PR dan push ke `main`.
+- `python -m atlas.selfcheck`: gerbang read-only sebelum switch rilis (config, koneksi DB per role, versi schema & checksum, partisi, file sumber, aset web; opsional `--nbu-ping`).
+- `scripts/release/build_release.py` (paket dari tag: zip, `requirements.lock`, wheelhouse Windows/cp313 untuk instalasi offline, `SHA256SUMS`) dan `scripts/release/verify_release.py`.
+- `ATLAS_ENV_FILE`: lokasi `.env` di luar folder rilis (`shared\.env`); `bootstrap.py` menulis password ke file yang sama.
+- `V005__selfcheck_grants.sql`: role aplikasi boleh membaca `core.schema_migrations`.
+- Draf CR staging: [docs/08-cr-staging.md](docs/08-cr-staging.md).
+- Fase 5: `scripts/dev/mock_nbu.py`, `scripts/dev/soak.py`, [quality report](docs/07-quality-report.md).
+
+### Changed
+- `capacity_job --from-json` melewati file V4 yang belum berubah sejak impor terakhir (event `job_skipped_unchanged`) — mencegah snapshot duplikat saat collector V4 gagal.
+- Test regresi kapasitas memakai fixture sintetis `tests/fixtures/v4_cache` (cache V4 asli tidak ada di repo).
+
 ## [0.1.0] - 2026-11-27
 
 Rilis pertama ATLAS (DEV). Belum di-deploy ke staging/production — deploy mengikuti
