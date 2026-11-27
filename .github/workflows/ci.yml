@@ -62,3 +62,24 @@ jobs:
 
       - name: Test integrasi & API (PostgreSQL 18)
         run: pytest -m integration -q -rs
+
+  # CSS frontend adalah hasil build Tailwind yang di-commit (server tidak punya Node/internet).
+  # Job ini memastikan frontend/css/app.css selalu sama dengan hasil build dari frontend/src/app.css.
+  frontend-css:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Pasang tooling (tanpa install script)
+        run: npm ci --ignore-scripts
+
+      - name: Build CSS & cek tidak ada perubahan
+        run: |
+          npm run build:css
+          git diff --exit-code -- frontend/css/app.css

@@ -19,12 +19,16 @@ function renderDiskPoolStats(rows) {
   const totalAvail = rows.reduce((a, r) => a + r["Available (TB)"], 0);
   const pct = totalUsable ? (totalUsed / totalUsable) * 100 : 0;
   const s = usageStatus(pct);
-  $("#dp-stats").html([
-    statTile("🗄️", "Total Capacity", fmtNum(totalUsable, 2), "TB", THEME.purple[0], THEME.purple[1]),
-    statTile("📦", "Used Capacity", fmtNum(totalUsed, 2), "TB", THEME.pink[0], THEME.pink[1]),
-    statTile("🟢", "Free Capacity", fmtNum(totalAvail, 2), "TB", THEME.orange[0], THEME.orange[1]),
-    statTile(s.icon, "Usage", fmtNum(pct, 2), "%", s.grad[0], s.grad[1]),
-  ].join(""));
+  renderGauge("#dp-stats", {
+    pct,
+    label: "Usage disk pool",
+    caption: `${fmtNum(rows.length, 0)} disk pool`,
+    facts: [
+      { label: "Total Capacity", value: fmtNum(totalUsable, 2), unit: "TB" },
+      { label: "Used Capacity", value: fmtNum(totalUsed, 2), unit: "TB" },
+      { label: "Free Capacity", value: fmtNum(totalAvail, 2), unit: "TB" },
+    ],
+  });
 }
 
 function diskPoolSummaryBySite(rows) {
@@ -57,14 +61,16 @@ function renderDiskPoolSummary(rows) {
       { key: "Usage (%)", label: "Usage (%)", type: "pct" },
     ])
   );
-  const maxTotal = Math.max(...summary.map((s) => s["Total Capacity (TB)"]), 1);
-  const bars = summary
-    .map((s) => {
-      const trackWidthPct = Math.max((s["Total Capacity (TB)"] / maxTotal) * 100, 2);
-      return barRowUsage(s.Site, s["Usage (%)"], trackWidthPct, `${fmtNum(s["Usage (%)"], 1)}%`);
-    })
+  const rings = summary
+    .map((s) => ringCard({
+      label: s.Site,
+      pct: s["Usage (%)"],
+      showLabel: false,
+      badge: `<span class="ranking-badge ranking-badge-${esc(s.Site.toLowerCase())}">${esc(s.Site)}</span>`,
+      sub: `${fmtNum(s["Used Capacity (TB)"], 1)} / ${fmtNum(s["Total Capacity (TB)"], 1)} TB`,
+    }))
     .join("");
-  $("#dp-summary-chart").html(chartLegendStatus() + (bars || '<div class="empty-note">Tidak ada data.</div>'));
+  $("#dp-summary-chart").html(rings ? `<div class="donut-grid">${rings}</div>` : '<div class="empty-note">Tidak ada data.</div>');
 }
 
 function renderDiskPoolRanking(rows, query) {
@@ -129,12 +135,16 @@ function renderTapeStats(rows) {
   const rawCap = rows.reduce((a, r) => a + r["Raw Capacity (TB)"], 0);
   const pct = totalQty ? (usedQty / totalQty) * 100 : 0;
   const s = usageStatus(pct);
-  $("#tp-stats").html([
-    statTile("💾", "Total Tape", fmtNum(totalQty, 0), "pcs", THEME.purple[0], THEME.purple[1]),
-    statTile("📦", "Tape Used", fmtNum(usedQty, 0), "pcs", THEME.pink[0], THEME.pink[1]),
-    statTile("🗄️", "Raw Capacity", fmtNum(rawCap, 2), "TB", THEME.orange[0], THEME.orange[1]),
-    statTile(s.icon, "Tape Used", fmtNum(pct, 2), "%", s.grad[0], s.grad[1]),
-  ].join(""));
+  renderGauge("#tp-stats", {
+    pct,
+    label: "Tape terpakai",
+    caption: `${fmtNum(rows.length, 0)} tape library`,
+    facts: [
+      { label: "Total Tape", value: fmtNum(totalQty, 0), unit: "pcs" },
+      { label: "Tape Used", value: fmtNum(usedQty, 0), unit: "pcs" },
+      { label: "Raw Capacity", value: fmtNum(rawCap, 2), unit: "TB" },
+    ],
+  });
 }
 
 function renderTapeSummaryChart(rows) {
@@ -142,16 +152,19 @@ function renderTapeSummaryChart(rows) {
     $("#tp-summary-chart").html('<div class="empty-note">Tidak ada data.</div>');
     return;
   }
-  const maxTotal = Math.max(...rows.map((r) => r["Total Tape (Qty)"]), 1);
-  const bars = rows
+  const rings = rows
     .map((r) => {
       const total = r["Total Tape (Qty)"];
       const pct = total ? (r["Tape Used (Qty)"] / total) * 100 : 0;
-      const trackWidthPct = Math.max((total / maxTotal) * 100, 2);
-      return barRowUsage(`${r.Site} — ${r["Type Tape"]}`, pct, trackWidthPct, `${total} pcs`);
+      return ringCard({
+        label: r["Type Tape"],
+        pct,
+        badge: `<span class="ranking-badge ranking-badge-${esc(String(r.Site).toLowerCase())}">${esc(r.Site)}</span>`,
+        sub: `${fmtNum(r["Tape Used (Qty)"], 0)} / ${fmtNum(total, 0)} pcs`,
+      });
     })
     .join("");
-  $("#tp-summary-chart").html(chartLegendStatus() + bars);
+  $("#tp-summary-chart").html(`<div class="donut-grid donut-grid-4">${rings}</div>`);
 }
 
 function renderTapeDetailTable(rows, query) {
@@ -246,6 +259,7 @@ async function captureCapacityImages() {
   const btn = $("#btn-capture");
   btn.prop("disabled", true);
   const originalView = currentView;
+  document.documentElement.classList.add("capturing");
   try {
     const stamp = timestampForFilename();
     if (currentView !== "diskpool") switchView("diskpool");
@@ -266,6 +280,7 @@ async function captureCapacityImages() {
   } catch (e) {
     showAlert("error", "Gagal capture gambar: " + e.message);
   } finally {
+    document.documentElement.classList.remove("capturing");
     switchView(originalView);
     btn.prop("disabled", false);
   }
@@ -275,6 +290,7 @@ async function captureCapacityImages() {
 
 registerView("diskpool", {
   placeholder: "Cari disk pool / site / master...",
+  onShow: () => setTimeout(placeDetailTabLine, 30),
   getQuery: () => capacityState.dpQuery,
   onSearch: (val) => {
     capacityState.dpQuery = val;
@@ -291,7 +307,37 @@ registerView("tape", {
   },
 });
 
+/* Tab detail per master (BRN/BSD/TBS) dengan garis bawah yang bergeser. */
+function selectDetailTab(master) {
+  $(".dp-tab").each(function () {
+    const on = $(this).data("master") === master;
+    $(this).toggleClass("active", on).attr("aria-selected", on ? "true" : "false").attr("tabindex", on ? "0" : "-1");
+  });
+  $(".dp-panel").each(function () { $(this).prop("hidden", $(this).data("master") !== master); });
+  placeDetailTabLine();
+}
+
+function placeDetailTabLine() {
+  const active = document.querySelector(".dp-tab.active");
+  const line = document.getElementById("dp-tab-line");
+  if (!active || !line || !active.offsetWidth) return;
+  line.style.width = active.offsetWidth + "px";
+  line.style.transform = `translateX(${active.offsetLeft}px)`;
+  line.className = "dp-tab-line line-" + active.dataset.master;
+}
+
 $(function () {
+  $(".dp-tab").on("click", function () { selectDetailTab($(this).data("master")); });
+  $(".dp-tabs").on("keydown", ".dp-tab", function (e) {
+    if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+    const tabs = $(".dp-tab").toArray();
+    const i = tabs.indexOf(this) + (e.key === "ArrowRight" ? 1 : -1);
+    const next = tabs[(i + tabs.length) % tabs.length];
+    selectDetailTab($(next).data("master"));
+    next.focus();
+  });
+  $(window).on("resize", placeDetailTabLine);
+  setTimeout(placeDetailTabLine, 50);
   loadCapacityData();
   setInterval(loadCapacityData, 300000);
   $("#btn-export").on("click", () => {

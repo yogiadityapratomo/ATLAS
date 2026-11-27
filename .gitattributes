@@ -10,6 +10,7 @@
 *.yaml  text eol=lf
 *.json  text eol=lf
 *.js    text eol=lf
+*.mjs   text eol=lf
 *.css   text eol=lf
 *.html  text eol=lf
 *.txt   text eol=lf
@@ -26,3 +27,4 @@
 *.jpg   binary
 *.ico   binary
 *.pdf   binary
+*.woff2 binary

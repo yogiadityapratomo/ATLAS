@@ -5,139 +5,152 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>NetBackup Capacity Report</title>
 <link rel="icon" href="/favicon.ico" type="image/svg+xml">
-<link rel="stylesheet" href="/static/css/style.css?v={{ASSET_VERSION}}">
+<link rel="preload" href="/static/vendor/fonts/ibm-plex-sans-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/static/vendor/fonts/ibm-plex-sans-condensed-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/static/css/app.css?v={{ASSET_VERSION}}">
 </head>
 <body>
-  <div class="shell">
-    <aside class="sidebar">
-      <div class="sidebar-logo">📊</div>
-      <nav class="sidebar-nav">
+  <div class="shell" id="shell">
+    <aside class="sidebar" aria-label="Navigasi utama">
+      <div class="sidebar-logo">
+        <span class="mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 9 4.5-9 4.5-9-4.5z"/><path d="m3 12 9 4.5 9-4.5"/><path d="m3 16.5 9 4.5 9-4.5"/></svg>
+        </span>
+        <span class="brand"><span class="word">ATLAS</span><span class="sub">NetBackup Console</span></span>
+      </div>
+
+      <nav class="sidebar-nav" id="sidebar-nav">
+        <span class="side-indicator" id="side-indicator" aria-hidden="true"></span>
+        <div class="side-group">Kapasitas</div>
         <button class="side-btn active" data-view="diskpool" title="Disk Pool">
-          <span class="side-icon">🗄️</span>
+          <span class="side-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5.5" rx="8" ry="2.8"/><path d="M4 5.5v6.2c0 1.6 3.6 2.8 8 2.8s8-1.2 8-2.8V5.5"/><path d="M4 11.7v6.5c0 1.6 3.6 2.8 8 2.8s8-1.2 8-2.8v-6.5"/></svg></span>
+          <span class="side-label">Disk Pool</span>
         </button>
         <button class="side-btn" data-view="tape" title="Tape Library">
-          <span class="side-icon">📼</span>
+          <span class="side-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5.5" width="19" height="13" rx="2.2"/><circle cx="8.5" cy="12" r="2.2"/><circle cx="15.5" cy="12" r="2.2"/><path d="M8.5 14.2h7"/></svg></span>
+          <span class="side-label">Tape Library</span>
         </button>
         <button class="side-btn" data-view="history" title="Historical Capacity">
-          <span class="side-icon">📈</span>
+          <span class="side-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 3.5v17h17"/><path d="m7.5 15 3.8-4.6 3 2.8 5-6"/></svg></span>
+          <span class="side-label">Historical Capacity</span>
         </button>
+        <div class="side-group">Operasional</div>
         <button class="side-btn" data-view="inventory" title="Backup Inventory">
-          <span class="side-icon">🔎</span>
+          <span class="side-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3.5" width="14" height="6.5" rx="1.6"/><rect x="3" y="14" width="9" height="6.5" rx="1.6"/><circle cx="17.2" cy="16.8" r="2.8"/><path d="m21 20.6-1.8-1.8"/></svg></span>
+          <span class="side-label">Backup Inventory</span>
         </button>
         <button class="side-btn" data-view="audit" title="Audit Log">
-          <span class="side-icon">📜</span>
+          <span class="side-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 6.5h11.5M8.5 12h11.5M8.5 17.5h7.5"/><circle cx="4.5" cy="6.5" r="1.1"/><circle cx="4.5" cy="12" r="1.1"/><circle cx="4.5" cy="17.5" r="1.1"/></svg></span>
+          <span class="side-label">Audit Log</span>
         </button>
       </nav>
+
       <div class="sidebar-spacer"></div>
+      <button class="side-collapse" id="side-collapse" type="button" aria-label="Ciutkan sidebar" title="Ciutkan sidebar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m11 17-5-5 5-5"/><path d="m18 17-5-5 5-5"/></svg>
+        <span class="side-label">Ciutkan</span>
+      </button>
     </aside>
 
     <div class="main">
       <header class="topbar">
         <div class="topbar-title">
           <h1 id="page-title">NetBackup Capacity Report</h1>
-          <span id="last-updated" class="muted">Belum ada data.</span>
+          <span id="last-updated" class="muted fresh">Belum ada data.</span>
           <span id="page-subtitle" class="muted" style="display:none"></span>
         </div>
         <div class="topbar-actions">
           <div class="search-box">
-            <span class="search-icon">🔍</span>
+            <span class="search-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg></span>
             <input type="text" id="global-search" placeholder="Cari disk pool / site / master...">
           </div>
-          <button id="btn-export" class="icon-btn" title="Export Excel">⬇️</button>
-          <button id="btn-capture" class="icon-btn" title="Capture Gambar Capacity (Summary by Site, Grouping by Master Server, &amp; Detail Tape Library)">📸</button>
+          <button id="btn-export" class="icon-btn" title="Export Excel" aria-label="Export Excel">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"/><path d="m7 10.5 5 4.5 5-4.5"/><path d="M5 20h14"/></svg>
+          </button>
+          <button id="btn-capture" class="icon-btn" title="Capture gambar kapasitas (Summary by Site, Grouping by Master Server, Detail Tape Library)" aria-label="Capture gambar kapasitas">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5h3.2l1.8-3h7l1.8 3h3.2v11h-17z"/><circle cx="12" cy="13.5" r="3.4"/></svg>
+          </button>
         </div>
       </header>
 
       <div id="alert-box"></div>
 
       <section id="view-diskpool" class="view active">
-        <div class="stat-grid" id="dp-stats"></div>
+        <div class="gauge-slot" id="dp-stats"></div>
         <div class="cutoff-note" id="dp-cutoff"></div>
 
         <div class="card-grid">
           <div class="card card-table" id="card-summary-site">
-            <div class="card-head"><h3>Capacity Appliance Summary by Site</h3></div>
+            <div class="card-head"><h3>Summary by Site</h3></div>
             <div class="card-body" id="dp-summary-table"></div>
           </div>
           <div class="card card-chart">
-            <div class="card-head"><h3>Kapasitas per Site</h3></div>
+            <div class="card-head"><h3>Usage per Site</h3></div>
             <div class="card-body" id="dp-summary-chart"></div>
           </div>
         </div>
 
         <div class="ranking-grid" id="ranking-grid-master">
-          <div class="card">
+          <div class="card rank-card rank-brn">
             <div class="card-head ranking-head">
               <span class="ranking-badge ranking-badge-brn">BRN</span>
-              <h3>Capacity Appliance Grouping by Master Server</h3>
+              <h3>Usage per appliance</h3>
             </div>
             <div class="card-body" id="dp-ranking-brn"></div>
           </div>
-          <div class="card">
+          <div class="card rank-card rank-bsd">
             <div class="card-head ranking-head">
               <span class="ranking-badge ranking-badge-bsd">BSD</span>
-              <h3>Capacity Appliance Grouping by Master Server</h3>
+              <h3>Usage per appliance</h3>
             </div>
             <div class="card-body" id="dp-ranking-bsd"></div>
           </div>
-          <div class="card">
+          <div class="card rank-card rank-tbs">
             <div class="card-head ranking-head">
               <span class="ranking-badge ranking-badge-tbs">TBS</span>
-              <h3>Capacity Appliance Grouping by Master Server</h3>
+              <h3>Usage per appliance</h3>
             </div>
             <div class="card-body" id="dp-ranking-tbs"></div>
           </div>
         </div>
 
-        <div class="card card-detail-freeze">
-          <div class="card-head ranking-head">
-            <span class="ranking-badge ranking-badge-brn">BRN</span>
-            <h3>Capacity Appliance Detail by Master Server</h3>
+        <div class="card card-detail-freeze dp-detail-card">
+          <div class="card-head dp-detail-head">
+            <h3>Detail per Master Server</h3>
+            <div class="dp-tabs" role="tablist" aria-label="Master server"><button class="dp-tab active" id="dp-tab-brn" role="tab" data-master="BRN" aria-controls="dp-panel-brn" aria-selected="true" tabindex="0"><span class="dp-tab-dot dot-brn"></span>BRN</button><button class="dp-tab" id="dp-tab-bsd" role="tab" data-master="BSD" aria-controls="dp-panel-bsd" aria-selected="false" tabindex="-1"><span class="dp-tab-dot dot-bsd"></span>BSD</button><button class="dp-tab" id="dp-tab-tbs" role="tab" data-master="TBS" aria-controls="dp-panel-tbs" aria-selected="false" tabindex="-1"><span class="dp-tab-dot dot-tbs"></span>TBS</button><span class="dp-tab-line" id="dp-tab-line" aria-hidden="true"></span></div>
           </div>
           <div class="card-body">
+          <div class="dp-panel" id="dp-panel-brn" role="tabpanel" aria-labelledby="dp-tab-brn" data-master="BRN">
             <div class="search-box detail-search">
-              <span class="search-icon">🔍</span>
-              <input type="text" class="dp-detail-search" data-master="BRN" placeholder="Cari site / disk pool...">
+              <span class="search-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg></span>
+              <input type="text" class="dp-detail-search" data-master="BRN" placeholder="Cari site / disk pool di BRN...">
             </div>
             <div id="dp-detail-brn" class="detail-table-freeze"></div>
           </div>
-        </div>
-
-        <div class="card card-detail-freeze">
-          <div class="card-head ranking-head">
-            <span class="ranking-badge ranking-badge-bsd">BSD</span>
-            <h3>Capacity Appliance Detail by Master Server</h3>
-          </div>
-          <div class="card-body">
+          <div class="dp-panel" id="dp-panel-bsd" role="tabpanel" aria-labelledby="dp-tab-bsd" data-master="BSD" hidden>
             <div class="search-box detail-search">
-              <span class="search-icon">🔍</span>
-              <input type="text" class="dp-detail-search" data-master="BSD" placeholder="Cari site / disk pool...">
+              <span class="search-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg></span>
+              <input type="text" class="dp-detail-search" data-master="BSD" placeholder="Cari site / disk pool di BSD...">
             </div>
             <div id="dp-detail-bsd" class="detail-table-freeze"></div>
           </div>
-        </div>
-
-        <div class="card card-detail-freeze">
-          <div class="card-head ranking-head">
-            <span class="ranking-badge ranking-badge-tbs">TBS</span>
-            <h3>Capacity Appliance Detail by Master Server</h3>
-          </div>
-          <div class="card-body">
+          <div class="dp-panel" id="dp-panel-tbs" role="tabpanel" aria-labelledby="dp-tab-tbs" data-master="TBS" hidden>
             <div class="search-box detail-search">
-              <span class="search-icon">🔍</span>
-              <input type="text" class="dp-detail-search" data-master="TBS" placeholder="Cari site / disk pool...">
+              <span class="search-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg></span>
+              <input type="text" class="dp-detail-search" data-master="TBS" placeholder="Cari site / disk pool di TBS...">
             </div>
             <div id="dp-detail-tbs" class="detail-table-freeze"></div>
+          </div>
           </div>
         </div>
       </section>
 
       <section id="view-tape" class="view">
-        <div class="stat-grid" id="tp-stats"></div>
+        <div class="gauge-slot" id="tp-stats"></div>
         <div class="cutoff-note" id="tp-cutoff"></div>
 
         <div class="card">
-          <div class="card-head"><h3>Summary per Tape Library</h3></div>
+          <div class="card-head"><h3>Usage per Tape Library</h3></div>
           <div class="card-body" id="tp-summary-chart"></div>
         </div>
 
@@ -162,16 +175,15 @@
             <label>Dari <input type="date" id="hist-from"></label>
             <label>Sampai <input type="date" id="hist-to"></label>
             <button id="hist-apply" class="btn-primary">Terapkan</button>
-            <button id="hist-export" class="btn-secondary">⬇️ Excel</button>
+            <button id="hist-export" class="btn-secondary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"/><path d="m7 10.5 5 4.5 5-4.5"/><path d="M5 20h14"/></svg>Excel</button>
           </div>
         </div>
 
         <div class="hist-layout">
           <div class="card hist-app-panel" id="hist-app-panel">
-            <div class="card-head hist-app-head"><h3>Appliance</h3><span class="muted" id="hist-app-count"></span></div>
+            <div class="card-head hist-app-head"><h3>Appliance <span class="info-tip" tabindex="0" title="Disk pool satu appliance digabung (mis. dp_disk_x07 + dp_disk_x7-worm = x7). Pilihan berlaku untuk ringkasan, grafik, dan tabel, juga sebagai filter grouping Site/Master." aria-label="Disk pool satu appliance digabung (mis. dp_disk_x07 + dp_disk_x7-worm = x7). Pilihan berlaku untuk ringkasan, grafik, dan tabel, juga sebagai filter grouping Site/Master."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.6h.01"/></svg></span></h3><span class="muted" id="hist-app-count"></span></div>
             <div class="card-body">
-              <div class="search-box detail-search"><span class="search-icon">🔍</span><input type="text" id="hist-app-search" placeholder="Cari disk pool / site..."></div>
-              <div class="hist-app-hint muted">Disk pool satu appliance digabung (mis. dp_disk_x07 + dp_disk_x7-worm → x7). Pilihan berlaku untuk ringkasan, grafik, dan tabel; juga sebagai filter untuk grouping Site/Master.</div>
+              <div class="search-box detail-search"><span class="search-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg></span><input type="text" id="hist-app-search" placeholder="Cari disk pool / site..."></div>
               <div class="hist-app-actions"><button id="hist-app-all" class="btn-secondary">Pilih semua</button><button id="hist-app-clear" class="btn-secondary">Kosongkan</button></div>
               <div id="hist-app-list"></div>
             </div>
@@ -179,7 +191,7 @@
           <div class="hist-main">
             <div class="card">
               <div class="card-head hist-chart-head">
-                <h3>Ringkasan Perbandingan <span class="muted" id="cmp-title"></span></h3>
+                <h3>Perbandingan <span class="info-tip" tabindex="0" title="Nilai = posisi terakhir yang ada datanya di tiap periode/tanggal. Δ poin = selisih usage %. Expansion = perubahan kapasitas usable." aria-label="Nilai = posisi terakhir yang ada datanya di tiap periode/tanggal. Δ poin = selisih usage %. Expansion = perubahan kapasitas usable."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.6h.01"/></svg></span> <span class="muted" id="cmp-title"></span></h3>
                 <div class="cmp-controls">
                   <select id="cmp-mode"></select>
                   <span id="cmp-range" style="display:none"><input type="date" id="cmp-a"> → <input type="date" id="cmp-b"></span>
@@ -188,7 +200,6 @@
               <div class="card-body">
                 <div id="cmp-stats" class="cmp-stats"></div>
                 <div id="cmp-table"></div>
-                <div class="muted hist-note">Nilai = posisi terakhir yang ada datanya di tiap periode/tanggal. ▲ naik · ▼ turun. Δ poin = selisih usage %. Expansion = perubahan kapasitas usable.</div>
               </div>
             </div>
             <div class="card">
@@ -203,10 +214,8 @@
               </div>
             </div>
             <div class="card">
-              <div class="card-head"><h3>Tabel Data</h3></div>
-              <div class="card-body"><div id="hist-table"></div>
-                <div class="muted hist-note">Nilai periode = posisi akhir periode; "Perkiraan 85%" = tren linear usage % (indikatif).</div>
-              </div>
+              <div class="card-head"><h3>Tabel Data <span class="info-tip" tabindex="0" title="Nilai periode = posisi akhir periode. Perkiraan 85% = tren linear usage % (indikatif)." aria-label="Nilai periode = posisi akhir periode. Perkiraan 85% = tren linear usage % (indikatif)."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.6h.01"/></svg></span></h3></div>
+              <div class="card-body"><div id="hist-table"></div></div>
             </div>
           </div>
         </div>
@@ -233,7 +242,7 @@
               <select id="inv-master"><option value="">Semua master</option></select>
               <select id="inv-ptype"><option value="">Semua policy type</option></select>
               <button id="inv-search-btn" class="btn-primary">Cari</button>
-              <button id="inv-export-btn" class="btn-secondary" title="Export hasil ke Excel">⬇️ Excel</button>
+              <button id="inv-export-btn" class="btn-secondary" title="Export hasil ke Excel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"/><path d="m7 10.5 5 4.5 5-4.5"/><path d="M5 20h14"/></svg>Excel</button>
             </div>
           </div>
         </div>
@@ -245,11 +254,11 @@
             <div class="card-head"><h3>Hasil Pencarian</h3></div>
             <div class="card-body">
               <div class="search-box detail-search">
-                <span class="search-icon">🔍</span>
+                <span class="search-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg></span>
                 <input type="text" id="inv-table-search" placeholder="Saring hasil (policy, schedule, aplikasi...)">
               </div>
               <div id="inv-table"></div>
-              <div class="inv-legend"><span class="row-not-found">Not Available = hostname tidak ada di backup</span><span class="row-no-backup">Tidak ada backup = host aplikasi di CMDB tanpa policy</span></div>
+              <div class="inv-legend"><span class="row-not-found">Not available</span><span class="row-no-backup">Tanpa backup</span></div>
             </div>
           </div>
         </div>
@@ -259,7 +268,7 @@
         <div class="stat-grid" id="aud-stats"></div>
         <div class="card">
           <div class="card-head aud-head">
-            <h3>Event</h3>
+            <h3>Event <span class="info-tip" tabindex="0" title="Diperbarui otomatis tiap 30 detik. Klik baris untuk detail." aria-label="Diperbarui otomatis tiap 30 detik. Klik baris untuk detail."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.6h.01"/></svg></span></h3>
             <span class="muted" id="aud-count"></span>
           </div>
           <div class="card-body">
@@ -280,22 +289,21 @@
               <input type="text" id="aud-q" placeholder="Cari teks pesan...">
               <input type="text" id="aud-id" placeholder="Request ID / ERR-XXXXXX">
               <button id="aud-apply" class="btn-primary">Terapkan</button>
-              <button id="aud-csv" class="btn-secondary">⬇️ CSV</button>
+              <button id="aud-csv" class="btn-secondary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"/><path d="m7 10.5 5 4.5 5-4.5"/><path d="M5 20h14"/></svg>CSV</button>
             </div>
             <div id="aud-table"></div>
-            <div class="aud-footer"><button id="aud-more" class="btn-secondary" style="display:none">Muat lebih</button>
-              <span class="muted">Auto-refresh 30 detik · klik baris untuk detail</span></div>
+            <div class="aud-footer"><button id="aud-more" class="btn-secondary" style="display:none">Muat lebih</button></div>
           </div>
         </div>
         <div id="aud-detail" class="aud-detail">
-          <div class="aud-detail-panel">
-            <div class="aud-detail-head"><h3>Detail Event</h3><button id="aud-detail-close" class="icon-btn">✕</button></div>
+          <div class="aud-detail-panel" role="dialog" aria-modal="true" aria-labelledby="aud-detail-title">
+            <div class="aud-detail-head"><h3 id="aud-detail-title">Detail Event</h3><button id="aud-detail-close" class="icon-btn" aria-label="Tutup detail">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
             <div id="aud-detail-body"></div>
           </div>
         </div>
       </section>
 
-      <footer class="app-footer">ATLAS &middot; NetBackup Capacity, Backup Inventory &amp; Audit</footer>
     </div>
   </div>
 

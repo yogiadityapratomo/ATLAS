@@ -141,6 +141,20 @@ Remove-Item Env:PGPASSWORD
 .venv\Scripts\python.exe scripts\dev\seed_capacity_history.py --purge      # hapus semua data contoh
 ```
 
+## Frontend (Tailwind CSS) — DEV
+
+Node.js (LTS) hanya dibutuhkan di laptop DEV untuk membangun CSS; server tidak butuh Node.
+
+```
+npm ci --ignore-scripts          # pasang Tailwind CLI, font, playwright-core (sekali)
+npm run watch:css                # saat mengubah tampilan
+npm run build:css                # sebelum commit (CI memeriksa hasilnya)
+npm run shots -- http://127.0.0.1:8001 build/ui-shots   # screenshot tiap menu + uji Capture (Edge lokal)
+node scripts/ui/live_tour.mjs    # jendela Chrome dengan kursor tur otomatis + reload saat file berubah
+```
+
+Detail aturan desain: [frontend/README.md](../../frontend/README.md).
+
 ## Paket rilis & self-check
 
 ```powershell

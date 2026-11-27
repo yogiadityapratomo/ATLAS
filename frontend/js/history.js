@@ -4,7 +4,7 @@
    grafik menampilkan 8 tertinggi, tabel & ringkasan memuat semua), warna mengikuti entitas, legend,
    tooltip crosshair, tabel data. */
 
-const HIST_PALETTE = ["#257de0", "#f47230", "#00b894", "#f2a600", "#ee7fac", "#008a17", "#6a4ce2", "#ec4647"];
+const HIST_PALETTE = ["#5b4bd6", "#e06a2c", "#0f9d7a", "#d29a0a", "#c2307a", "#2f7fd8", "#6f8a1f", "#d33a55"];
 const HIST_METRICS = {
   usage_pct: { label: "Usage (%)", unit: "%", decimals: 1 },
   used_tb: { label: "Used (TB)", unit: "TB", decimals: 1 },
@@ -97,7 +97,7 @@ function renderCompare() {
     return;
   }
   const tile = (icon, name, value, sub, cls) =>
-    `<div class="cmp-tile"><div class="cmp-tile-head">${icon} ${esc(name)}</div><div class="cmp-tile-value ${cls}">${value}</div><div class="cmp-tile-sub">${sub}</div></div>`;
+    `<div class="cmp-tile"><div class="cmp-tile-head"><span class="cmp-icon">${iconSvg(icon)}</span>${esc(name)}</div><div class="cmp-tile-value ${cls}">${value}</div><div class="cmp-tile-sub">${sub}</div></div>`;
   $("#cmp-stats").html([
     tile("📦", "Used capacity", signed(t.used_change_pct, 2, "%"),
       `${fmtNum(t.base.used_tb, 1)} → ${fmtNum(t.current.used_tb, 1)} TB (${signed(t.used_delta_tb, 1, "TB")})`, deltaClass(t.used_change_pct)),
@@ -240,12 +240,12 @@ function renderHistoryChart() {
       path += `${pen ? "L" : "M"}${x(i).toFixed(1)},${y(p[histState.metric]).toFixed(1)} `;
       pen = true;
     });
-    svg += `<path d="${path}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+    svg += `<path d="${path}" pathLength="1" class="hist-line" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
     if (shown.length <= 4) {
       const lastIdx = starts.map((b) => !!s.points[b]).lastIndexOf(true);
       if (lastIdx >= 0) {
         const v = s.points[starts[lastIdx]][histState.metric];
-        svg += `<circle cx="${x(lastIdx)}" cy="${y(v)}" r="4" fill="${color}" stroke="#fff" stroke-width="2"/>`;
+        svg += `<circle class="hist-end" cx="${x(lastIdx)}" cy="${y(v)}" r="4" fill="${color}" stroke="#fff" stroke-width="2"/>`;
       }
     }
   });
