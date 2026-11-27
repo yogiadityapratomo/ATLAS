@@ -27,6 +27,7 @@ from atlas.core.db import Database
 from atlas.core.errors import AtlasError, ValidationError
 from atlas.core.logging import announce_startup, setup_logging
 from atlas.repositories import cmdb as cmdb_repo
+from atlas.repositories import inventory as inventory_repo
 from atlas.services import cmdb as cmdb_service
 
 SOURCE = "cmdb"
@@ -50,6 +51,7 @@ def import_cmdb(
         counts = cmdb_repo.sync_server_inventory(conn, (r.as_db_row() for r in parsed.rows), ctx.run_id)
         if counts.changed:
             cmdb_repo.analyze(conn)
+            inventory_repo.refresh_search(conn)  # nama aplikasi/PIC di hasil pencarian ikut terbarui
             cmdb_repo.notify_changed(conn, ctx.run_id)
         return JobResult(
             total=len(parsed.rows),

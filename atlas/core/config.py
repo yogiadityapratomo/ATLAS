@@ -93,6 +93,7 @@ class Settings:
     nbu_max_retries: int = 3
     capacity_json_dir: Path | None = None
     cache_dir: Path = REPO_ROOT / "cache"
+    policy_cache_path: Path | None = None
 
     def db_credentials(self, role: DbRole) -> DbCredentials:
         return {
@@ -201,6 +202,7 @@ def load_settings(env_file: Path | None = None, environ: Mapping[str, str] | Non
         nbu_max_retries=reader.integer("ATLAS_NBU_MAX_RETRIES", default=3, minimum=1, maximum=10),
         capacity_json_dir=reader.optional_path("ATLAS_CAPACITY_JSON_DIR"),
         cache_dir=reader.path("ATLAS_CACHE_DIR", default="cache"),
+        policy_cache_path=reader.optional_path("ATLAS_POLICY_CACHE"),
     )
     if settings.db_pool_min > settings.db_pool_max:
         reader.errors.append("ATLAS_DB_POOL_MIN tidak boleh lebih besar dari ATLAS_DB_POOL_MAX")

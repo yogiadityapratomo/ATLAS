@@ -69,3 +69,39 @@ def capacity_workbook(
     buffer = io.BytesIO()
     wb.save(buffer)
     return buffer.getvalue()
+
+
+# ---------------------------------------------------------------- backup inventory
+
+NOT_AVAILABLE_FILL = PatternFill(start_color="F8D7DA", end_color="F8D7DA", fill_type="solid")
+NO_BACKUP_FILL = PatternFill(start_color="FFF3CD", end_color="FFF3CD", fill_type="solid")
+
+
+def inventory_workbook(
+    rows: Sequence[dict[str, Any]], columns: Sequence[tuple[str, str]], *, cutoff: str
+) -> bytes:
+    """Format report "SearchByHostname" bot: baris 1 cut-off (kuning, teks merah), header baris 2,
+    baris "Not Available" merah muda, freeze A3, lebar kolom otomatis (maks 50)."""
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Backup Inventory"
+    ws.append([f"This data uses the inventory backup cut-off as of {cutoff}"])
+    ws["A1"].fill = PatternFill(start_color="FFFF00", end_color="FFFF00", fill_type="solid")
+    ws["A1"].font = Font(color="FF0000", bold=True)
+    ws["A1"].alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+    ws.append([title for _, title in columns])
+    for cell in ws[2]:
+        cell.font = Font(bold=True)
+    for row in rows:
+        ws.append([row.get(key) for key, _ in columns])
+        fill = {"not_found": NOT_AVAILABLE_FILL, "no_backup": NO_BACKUP_FILL}.get(row.get("status"))
+        if fill:
+            for cell in ws[ws.max_row]:
+                cell.fill = fill
+    for col in ws.iter_cols(min_row=2):
+        width = max((len(str(c.value)) for c in col if c.value is not None), default=8)
+        ws.column_dimensions[col[0].column_letter].width = min(width + 2, 50)
+    ws.freeze_panes = "A3"
+    buffer = io.BytesIO()
+    wb.save(buffer)
+    return buffer.getvalue()
